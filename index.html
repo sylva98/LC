@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>聆晨画册集</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    background: #fafafa;
+    font-family: "Helvetica Neue", "PingFang SC", -apple-system, sans-serif;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 顶部导航 */
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 32px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(250,250,250,0.95), transparent);
+  }
+  .logo {
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .admin-link {
+    font-size: 12px;
+    color: #999;
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    transition: color 0.3s;
+  }
+  .admin-link:hover { color: #1a1a1a; }
+
+  /* Hero 区域 */
+  .hero {
+    padding: 140px 48px 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 300;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 400;
+  }
+  .hero p {
+    font-size: 15px;
+    color: #888;
+    max-width: 480px;
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  /* 画册网格 */
+  .gallery {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 48px 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 40px;
+  }
+
+  .book-card {
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .book-card:hover { transform: translateY(-4px); }
+
+  .book-cover {
+    aspect-ratio: 3/4;
+    background: #e5e5e5;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  .book-card:hover .book-cover img { transform: scale(1.03); }
+
+  .book-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .book-title {
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .book-meta {
+    font-size: 12px;
+    color: #aaa;
+    letter-spacing: 0.05em;
+  }
+
+  /* 空状态 */
+  .empty {
+    text-align: center;
+    padding: 120px 0;
+    color: #bbb;
+    font-size: 14px;
+    font-weight: 300;
+  }
+
+  @media (max-width: 768px) {
+    header { padding: 20px 24px; }
+    .hero { padding: 100px 24px 40px; }
+    .gallery { padding: 0 24px 60px; grid-template-columns: 1fr; gap: 32px; }
+  }
+</style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://izspqexefmggllhldfty.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_kGwGiZSKXZkIDtvnGcDCSA_9Gnin7sk';
+    const { createClient } = window.supabase;
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  </script>
+</head>
+<body>
+
+<header>
+  <div class="logo">LC Portfolio</div>
+  <div style="display:flex; gap:20px; align-items:center;">
+    <input type="text" id="searchInput" placeholder="搜索画册..." style="padding:6px 12px; border:1px solid #eee; border-radius:20px; font-size:13px; outline:none; width:160px;">
+    <button id="categoryBtn" style="background:none; border:none; font-size:20px; cursor:pointer; padding:4px;">☰</button>
+  </div>
+</header>
+
+<!-- 分类下拉菜单 -->
+<div id="categoryDropdown" style="display:none; position:fixed; top:60px; right:24px; background:white; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.12); padding:16px; z-index:100; min-width:180px;">
+  <div style="font-size:13px; color:#999; margin-bottom:10px;">分类筛选</div>
+  <div id="categoryList" style="display:flex; flex-direction:column; gap:8px;"></div>
+</div>
+
+<section class="hero">
+ <h1>聆晨拾光<br><em>听见时间在晨雾中流淌</em></h1>
+  <p>精选画册合集，翻阅之间，感受光影与色彩的流动。</p>
+</section>
+
+<section class="gallery" id="gallery"></section>
+
+<script>
+  let allVisibleBooks = [];
+  let currentCategory = '';
+
+  async function loadBooks() {
+    const gallery = document.getElementById('gallery');
+    const { data: books, error } = await supabase
+      .from('books')
+      .select('*')
+      .order('updated_at', { ascending: false });
+
+    if (error || !books || books.length === 0) {
+      gallery.innerHTML = '<div class="empty">暂无画册</div>';
+      return;
+    }
+
+    // 判断当前设备是移动端还是PC端
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+    // 过滤：只显示当前设备允许的画册
+    allVisibleBooks = books.filter(book => {
+      const config = book.config || {};
+      const showOn = config.showOn || { mobile: true, pc: true };
+      if (isMobile) return showOn.mobile !== false;
+      return showOn.pc !== false;
+    });
+
+    // 收集所有分类
+    const categories = new Set();
+    allVisibleBooks.forEach(book => {
+      const cat = book.config?.category;
+      if (cat) categories.add(cat);
+    });
+    renderCategoryDropdown(categories);
+
+    filterBooks();
+  }
+
+  function renderCategoryDropdown(categories) {
+    const list = document.getElementById('categoryList');
+    let html = `<div style="padding:6px 0; cursor:pointer; color:#333;" onclick="selectCategory('')">全部</div>`;
+    categories.forEach(cat => {
+      html += `<div style="padding:6px 0; cursor:pointer; color:#555;" onclick="selectCategory('${cat}')">${cat}</div>`;
+    });
+    list.innerHTML = html;
+  }
+
+  function selectCategory(cat) {
+    currentCategory = cat;
+    document.getElementById('categoryDropdown').style.display = 'none';
+    filterBooks();
+  }
+
+  function filterBooks() {
+    const gallery = document.getElementById('gallery');
+    const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+
+    let filtered = allVisibleBooks;
+    // 分类筛选
+    if (currentCategory) {
+      filtered = filtered.filter(book => book.config?.category === currentCategory);
+    }
+    // 搜索筛选
+    if (keyword) {
+      filtered = filtered.filter(book => book.name.toLowerCase().includes(keyword));
+    }
+
+    if (filtered.length === 0) {
+      gallery.innerHTML = '<div class="empty">没有找到对应画册</div>';
+      return;
+    }
+
+    gallery.innerHTML = filtered.map(book => {
+      const config = book.config || {};
+      const defaultCover = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400"><rect fill="#e5e5e5" width="300" height="400"/><text x="50%" y="50%" font-family="sans-serif" font-size="14" fill="#bbb" text-anchor="middle">暂无封面</text></svg>');
+      const coverSrc = config.cover?.image || config.pages?.[0]?.src || defaultCover;
+      const pageCount = (config.pages || []).length;
+
+      return `
+        <a href="book-ratio-adaptive.html?book=${book.id}" class="book-card">
+          <div class="book-cover">
+            <img src="${coverSrc}" alt="${book.name}">
+          </div>
+          <div class="book-info">
+            <div class="book-title">${book.name}</div>
+            <div class="book-meta">${pageCount} 页</div>
+          </div>
+        </a>
+      `;
+    }).join('');
+  }
+
+  // 搜索框输入实时筛选
+  document.getElementById('searchInput').addEventListener('input', filterBooks);
+
+  // 分类按钮点击切换下拉
+  document.getElementById('categoryBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const dropdown = document.getElementById('categoryDropdown');
+    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // 点击页面其他地方关闭分类下拉
+  document.addEventListener('click', () => {
+    document.getElementById('categoryDropdown').style.display = 'none';
+  });
+
+  loadBooks();
+</script>
+
+</body>
+</html>
