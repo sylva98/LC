@@ -8,1341 +8,240 @@
   <script>
     const SUPABASE_URL = 'https://izspqexefmggllhldfty.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_kGwGiZSKXZkIDtvnGcDCSA_9Gnin7sk';
-    console.log('window.supabase:', window.supabase);
     const { createClient } = window.supabase;
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('supabase:', supabase);
-    console.log('supabase.auth:', supabase.auth);
-  </script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
-      background: #f5f5f5;
-      color: #333;
-      overflow: hidden;
-    }
 
-    /* ===== 列表视图 ===== */
-    .view-list {
-      height: 100vh;
-      overflow-y: auto;
-      padding: 40px 60px;
-      background: #f5f5f5;
-    }
-    .list-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 32px;
-    }
-    .list-header h1 {
-      font-size: 28px;
-      font-weight: 800;
-      color: #1a1a2e;
-    }
-    .list-header .btn-primary {
-      padding: 12px 24px;
-      background: #e63946;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .2s;
-    }
-    .list-header .btn-primary:hover { background: #d62839; transform: translateY(-1px); }
+    // 简单的错误日志包装
+    const debug = (...args) => console.log('[admin]', ...args);
 
-    .books-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 24px;
-    }
-    .book-card {
-      background: #fff;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      cursor: pointer;
-      transition: all .25s;
-    }
-    .book-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    }
-    .book-cover {
-      width: 100%;
-      aspect-ratio: 3 / 4;
-      background: #e8e8e8;
-      overflow: hidden;
-      position: relative;
-    }
-    .book-cover img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .book-cover-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      color: #ccc;
-      background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
-    }
-    .book-info {
-      padding: 16px;
-    }
-    .book-name {
-      font-size: 15px;
-      font-weight: 700;
-      color: #222;
-      margin-bottom: 4px;
-    }
-    .book-meta {
-      font-size: 12px;
-      color: #999;
-    }
-    .book-actions {
-      display: flex;
-      gap: 8px;
-      padding: 0 16px 16px;
-    }
-    .book-actions button {
-      flex: 1;
-      padding: 8px;
-      border: 1px solid #ddd;
-      background: #fff;
-      border-radius: 6px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all .2s;
-    }
-    .book-actions button:hover { background: #f5f5f5; }
-    .book-actions button.danger:hover { background: #e63946; color: #fff; border-color: #e63946; }
-
-    /* ===== 编辑视图 ===== */
-    .view-edit {
-      display: flex;
-      height: 100vh;
-    }
-
-    /* ===== 左侧配置面板 ===== */
-    .sidebar {
-      width: 380px;
-      min-width: 380px;
-      background: #1e1e2e;
-      color: #ddd;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .sidebar-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid #333;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .sidebar-header h1 {
-      font-size: 15px;
-      font-weight: 600;
-      color: #fff;
-    }
-    .sidebar-actions {
-      display: flex;
-      gap: 8px;
-    }
-    .sidebar-actions button {
-      padding: 6px 12px;
-      border: 1px solid #444;
-      background: transparent;
-      color: #ccc;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: all .2s;
-    }
-    .sidebar-actions button:hover { background: #333; color: #fff; }
-    .sidebar-actions button.primary {
-      background: #e63946;
-      border-color: #e63946;
-      color: #fff;
-    }
-
-    .sidebar-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-    }
-    .sidebar-body::-webkit-scrollbar { width: 6px; }
-    .sidebar-body::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
-
-    .section {
-      margin-bottom: 24px;
-    }
-    .section-title {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      color: #888;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #333;
-    }
-
-    .form-row {
-      margin-bottom: 12px;
-    }
-    .form-row {
-      margin-bottom: 20px;
-    }
-    .form-row label {
-      display: block;
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 8px;
-      font-weight: 500;
-    }
-    .form-row input[type="text"],
-    .form-row input[type="number"],
-    .form-row input[type="url"],
-    .form-row select,
-    .form-row textarea {
-      width: 100%;
-      padding: 8px 10px;
-      background: #2a2a3c;
-      border: 1px solid #3a3a4c;
-      border-radius: 4px;
-      color: #eee;
-      font-size: 13px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color .2s;
-    }
-    .form-row input:focus,
-    .form-row select:focus,
-    .form-row textarea:focus {
-      border-color: #e63946;
-    }
-    .form-row textarea {
-      min-height: 80px;
-      resize: vertical;
-      font-family: "SF Mono", Monaco, monospace;
-      font-size: 11px;
-      line-height: 1.5;
-    }
-    .form-row input[type="color"] {
-      width: 100%;
-      height: 36px;
-      border: 1px solid #3a3a4c;
-      border-radius: 4px;
-      background: #2a2a3c;
-      cursor: pointer;
-    }
-    .form-row-inline {
-      display: flex;
-      gap: 8px;
-    }
-    .form-row-inline > div { flex: 1; }
-
-    /* ===== 页面卡片 ===== */
-    .page-card {
-      background: #2a2a3c;
-      border: 1px solid #3a3a4c;
-      border-radius: 8px;
-      padding: 16px 16px 12px;
-      margin-bottom: 16px;
-      position: relative;
-    }
-    .page-card .form-row {
-      margin-bottom: 0;
-    }
-    .page-card .form-row label {
-      margin-bottom: 6px;
-    }
-    .page-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .page-card-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: #aaa;
-    }
-    .page-card-actions {
-      display: flex;
-      gap: 4px;
-    }
-    .page-card-actions button {
-      width: 24px;
-      height: 24px;
-      border: none;
-      background: #3a3a4c;
-      color: #999;
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .page-card-actions button:hover { background: #4a4a5c; color: #fff; }
-    .page-card-actions button.delete:hover { background: #e63946; }
-
-    .add-page-btn {
-      width: 100%;
-      padding: 10px;
-      border: 1px dashed #4a4a5c;
-      background: transparent;
-      color: #888;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      transition: all .2s;
-    }
-    .add-page-btn:hover {
-      border-color: #e63946;
-      color: #e63946;
-    }
-
-    .type-toggle {
-      display: flex;
-      gap: 0;
-      margin-bottom: 8px;
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid #3a3a4c;
-    }
-    .type-toggle button {
-      flex: 1;
-      padding: 6px;
-      border: none;
-      background: #2a2a3c;
-      color: #888;
-      cursor: pointer;
-      font-size: 11px;
-      transition: all .2s;
-    }
-    .type-toggle button.active {
-      background: #e63946;
-      color: #fff;
-    }
-
-    /* ===== 右侧预览区 ===== */
-    .preview-area {
-      flex: 1;
-      background: #ddd;
-      position: relative;
-    }
-    .preview-area iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
-    }
-    .preview-badge {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: rgba(0,0,0,0.6);
-      color: #fff;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      pointer-events: none;
-    }
-
-    .hint {
-      font-size: 11px;
-      color: #666;
-      margin-top: 4px;
-      line-height: 1.4;
-    }
-
-    .upload-btn {
-      margin-top: 6px;
-      width: 100%;
-      padding: 8px;
-      border: 1px dashed #4a4a5c;
-      background: transparent;
-      color: #888;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: all .2s;
-    }
-    .upload-btn:hover {
-      border-color: #e63946;
-      color: #e63946;
-    }
-
-    /* 画册选择器 */
-    .book-selector {
-      padding: 12px 16px;
-      background: #181825;
-      border-bottom: 1px solid #333;
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    .book-selector select {
-      flex: 1;
-      padding: 8px 10px;
-      background: #2a2a3c;
-      border: 1px solid #3a3a4c;
-      border-radius: 4px;
-      color: #eee;
-      font-size: 13px;
-      outline: none;
-      cursor: pointer;
-    }
-    .book-selector button {
-      padding: 8px 10px;
-      border: 1px solid #3a3a4c;
-      background: #2a2a3c;
-      color: #aaa;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      white-space: nowrap;
-      transition: all .2s;
-    }
-    .book-selector button:hover { background: #3a3a4c; color: #fff; }
-    .book-selector button.danger:hover { background: #e63946; border-color: #e63946; }
-  </style>
-</head>
-<body>
-
-<!-- 登录界面 -->
-<div id="loginView" style="display:flex; position:fixed; top:0; left:0; right:0; bottom:0; background:#12121f; z-index:9999; justify-content:center; align-items:center;">
-  <div style="background:#1a1a2e; padding:40px; border-radius:12px; width:90%; max-width:360px;">
-    <h2 style="margin:0 0 24px; color:#fff; font-size:20px; text-align:center;">管理后台登录</h2>
-    <div style="margin-bottom:16px;">
-      <input type="text" id="loginUser" placeholder="账号" style="width:100%; padding:12px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#fff; font-size:14px; box-sizing:border-box;">
-    </div>
-    <div style="margin-bottom:24px;">
-      <input type="password" id="loginPass" placeholder="密码" style="width:100%; padding:12px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#fff; font-size:14px; box-sizing:border-box;">
-    </div>
-    <button onclick="doLogin()" style="width:100%; padding:12px; background:#6c5ce7; border:none; border-radius:6px; color:#fff; font-size:14px; cursor:pointer;">登录</button>
-    <div id="loginError" style="color:#e74c3c; font-size:12px; text-align:center; margin-top:12px; display:none;">账号或密码错误</div>
-  </div>
-</div>
-
-  <!-- ===== 列表视图 ===== -->
-  <div id="viewList" class="view-list" style="display:none">
-    <div class="list-header">
-      <h1>我的画册</h1>
-      <div style="display:flex; gap:10px;">
-        <button onclick="window.open('index.html', '_blank')" style="padding:10px 16px; background:#333; border:none; border-radius:6px; color:#aaa; cursor:pointer; font-size:13px;">首页</button>
-        <button onclick="logout()" style="padding:10px 16px; background:#333; border:none; border-radius:6px; color:#aaa; cursor:pointer; font-size:13px;">退出登录</button>
-        <button class="btn-primary" onclick="newBook()">+ 新建画册</button>
-      </div>
-    </div>
-    <div class="books-grid" id="booksGrid"></div>
-  </div>
-
-  <!-- ===== 编辑视图 ===== -->
-  <div id="viewEdit" class="view-edit" style="display:none">
-
-  <!-- 左侧配置面板 -->
-  <div class="sidebar">
-    <div class="sidebar-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-      <h1 style="cursor:pointer; margin:0; font-size:18px;" onclick="showListView()" title="返回列表">← 返回</h1>
-      <div class="sidebar-actions" style="display:flex; gap:10px; align-items:center;">
-        <button onclick="document.getElementById('importImages').click()" style="padding:8px 14px; font-size:13px;">批量导入图片</button>
-        <input type="file" id="importImages" accept="image/*" multiple style="display:none" onchange="importImages(event)">
-        <button onclick="window.open('index.html', '_blank')" style="padding:8px 14px; font-size:13px;">首页</button>
-        <button class="primary" onclick="openPreview()" style="padding:8px 14px; font-size:13px;">预览 ↗</button>
-      </div>
-    </div>
-
-    <div class="sidebar-body">
-
-      <!-- 全局设置 -->
-      <div class="section">
-        <div class="section-title">全局设置</div>
-
-        <div class="form-row">
-          <label>背景颜色</label>
-          <input type="color" id="bgColor" onchange="updateConfig()">
-        </div>
-
-        <div class="form-row">
-          <label>背景图片（可选）</label>
-          <div style="display:flex; gap:10px; align-items:flex-start;">
-            <div id="bgThumb" style="width:60px; height:60px; border-radius:4px; overflow:hidden; background:#2a2a3c; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-              <span style="font-size:10px; color:#666;">空</span>
-            </div>
-            <div style="flex:1; display:flex; gap:6px;">
-              <input type="text" id="bgImage" placeholder="粘贴链接或上传" oninput="updateConfig(); updateBgThumb();" style="flex:1; margin:0;">
-              <button class="upload-btn" style="margin:0; width:auto; padding:0 10px; flex-shrink:0;" onclick="document.getElementById('bgUpload').click()">📁</button>
-            </div>
-          </div>
-          <input type="file" id="bgUpload" accept="image/*" style="display:none" onchange="handleBgUpload(event)">
-        </div>
-
-        <div class="form-row">
-          <label>画册比例（单页宽 : 高）</label>
-          <div class="form-row-inline">
-            <div>
-              <input type="number" id="ratioW" value="420" onchange="updateConfig()">
-            </div>
-            <div>
-              <input type="number" id="ratioH" value="560" onchange="updateConfig()">
-            </div>
-          </div>
-          <div class="hint">比如 420:560 = 3:4 竖版；600:450 = 4:3 横版</div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label style="display:flex; align-items:center; gap:16px; margin:0;">
-              显示端
-              <label style="display:flex; align-items:center; gap:6px; margin:0; font-weight:normal;">
-                <input type="checkbox" id="showMobile" onchange="updateConfig()">
-                移动端
-              </label>
-              <label style="display:flex; align-items:center; gap:6px; margin:0; font-weight:normal;">
-                <input type="checkbox" id="showPc" onchange="updateConfig()">
-                PC端
-              </label>
-            </label>
-          </div>
-          <div class="form-group">
-            <label>分类（可选，相同分类自动分组）</label>
-            <input type="text" id="bookCategory" list="categoryList" placeholder="输入分类名称，如：油画、摄影" oninput="updateConfig()">
-            <datalist id="categoryList"></datalist>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <label>背景音乐（可选）</label>
-          <div style="display:flex; gap:6px;">
-            <input type="text" id="musicUrl" placeholder="粘贴mp3链接或上传" oninput="updateConfig()" style="flex:1; margin:0;">
-            <button class="upload-btn" style="margin:0; width:auto; padding:0 10px; flex-shrink:0;" onclick="document.getElementById('musicUpload').click()">📁</button>
-          </div>
-          <input type="file" id="musicUpload" accept="audio/*" style="display:none" onchange="handleMusicUpload(event)">
-          <div style="display:flex; gap:16px; margin-top:10px; align-items:center;">
-            <label style="font-size:12px; color:#888; margin:0;">音量：<span id="musicVolumeText">0.5</span></label>
-            <input type="range" id="musicVolume" min="0" max="1" step="0.1" value="0.5" style="flex:1; margin:0;" oninput="document.getElementById('musicVolumeText').innerText=this.value; updateConfig()">
-          </div>
-          <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
-            <label style="font-size:12px; color:#888; margin:0;">从第</label>
-            <input type="number" id="musicStartPage" value="1" min="1" style="width:60px; margin:0;" onchange="updateConfig()">
-            <label style="font-size:12px; color:#888; margin:0;">页开始播放</label>
-          </div>
-        </div>
-      </div>
-
-      <!-- 封面 -->
-      <div class="section">
-        <div class="section-title">封面</div>
-        <div class="page-card" onmousedown="jumpToPage(0)">
-          <div id="coverImageWrap">
-            <div class="form-row">
-              <label>封面图片</label>
-              <div style="display:flex; gap:10px; align-items:center;">
-                <div id="coverThumb" style="width:56px; height:56px; border-radius:4px; overflow:hidden; background:#1e1e2c; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                  <span style="font-size:10px; color:#666;">空</span>
-                </div>
-                <div style="flex:1; display:flex; gap:6px; align-items:center;">
-                  <input type="text" id="coverImage" placeholder="粘贴链接或上传" oninput="updateConfig(); updateCoverThumb();" style="flex:1; margin:0; height:36px;">
-                  <button class="upload-btn" style="margin:0; width:auto; padding:0 10px; flex-shrink:0; height:36px;" onclick="document.getElementById('coverUpload').click()">📁</button>
-                </div>
-              </div>
-              <input type="file" id="coverUpload" accept="image/*" style="display:none" onchange="handleUpload(event, 'coverImage')">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 内页列表 -->
-      <div class="section">
-        <div class="section-title">内页（共 <span id="pageCount">0</span> 页）</div>
-        <div id="pagesList"></div>
-      </div>
-
-      <!-- 封底 -->
-      <div class="section">
-        <div class="section-title">封底</div>
-        <div class="page-card" onmousedown="jumpToPage(Math.floor((config.pages.length + 2) / 2))">
-          <div class="type-toggle">
-            <button id="backTypeImage" onclick="setBackType('image')">纯图片</button>
-            <button id="backTypeHtml" class="active" onclick="setBackType('html')">HTML 文字</button>
-          </div>
-          <div id="backImageWrap" style="display:none">
-            <div class="form-row">
-              <label>封底图片</label>
-              <div style="display:flex; gap:10px; align-items:center;">
-                <div id="backThumb" style="width:56px; height:56px; border-radius:4px; overflow:hidden; background:#1e1e2c; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                  <span style="font-size:10px; color:#666;">空</span>
-                </div>
-                <div style="flex:1; display:flex; gap:6px; align-items:center;">
-                  <input type="text" id="backImage" placeholder="粘贴链接或上传" oninput="updateConfig(); updateBackThumb();" style="flex:1; margin:0; height:36px;">
-                  <button class="upload-btn" style="margin:0; width:auto; padding:0 10px; flex-shrink:0; height:36px;">📁</button>
-                </div>
-              </div>
-              <input type="file" id="backUpload" accept="image/*" style="display:none" onchange="handleUpload(event, 'backImage')">
-            </div>
-          </div>
-          <div id="backHtmlWrap">
-            <div class="form-row">
-              <label>封底 HTML 内容</label>
-              <button id="backHtmlBtn" style="width:100%; padding:10px; background:#2a2a3c; border:1px solid #444; border-radius:6px; color:#aaa; cursor:pointer; text-align:left; font-size:12px;">
-                ${config?.backCover?.html ? '已编辑，点击修改' : '点击编辑HTML内容'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- 右侧预览 -->
-  <div class="preview-area">
-    <div class="preview-badge">实时预览</div>
-    <iframe id="previewFrame" src="book-ratio-adaptive.html"></iframe>
-  </div>
-
-  </div><!-- /viewEdit -->
-
-  <script>
-    // ==========================================
-    //  登录验证（Supabase）
-    // ==========================================
-
-    async function checkLogin() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        document.getElementById('loginView').style.display = 'flex';
-        document.getElementById('viewList').style.display = 'none';
-        document.getElementById('viewEdit').style.display = 'none';
-      } else {
-        showListView();
+    // 拉取所有画册（按创建时间降序）
+    async function fetchBooks() {
+      debug('fetchBooks start');
+      const { data, error } = await supabase
+        .from('books')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error('fetchBooks error', error);
+        showEmptyState('从服务器拉取画册失败：' + (error.message || error));
+        return [];
       }
+      debug('fetchBooks result', data);
+      return data || [];
     }
 
-    async function doLogin() {
-      const email = document.getElementById('loginUser').value.trim();
-      const password = document.getElementById('loginPass').value.trim();
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
-        if (error) {
-          let msg = error.message;
-          if (error.message.includes('Invalid login credentials')) {
-            msg = '邮箱或密码错误';
-          } else if (error.message.includes('Email not confirmed')) {
-            msg = '邮箱还未验证，请先验证邮箱';
-          }
-          document.getElementById('loginError').textContent = msg;
-          document.getElementById('loginError').style.display = 'block';
+    // 渲染列表
+    async function renderList() {
+      const container = document.getElementById('booksGrid');
+      container.innerHTML = '<div class="loading">加载中…</div>';
+      const books = await fetchBooks();
+      if (!books || books.length === 0) {
+        container.innerHTML = '<div class="empty">暂无画册，点击“新建画册”开始。</div>';
+        return;
+      }
+      container.innerHTML = '';
+      books.forEach(book => {
+        const card = document.createElement('div');
+        card.className = 'book-card';
+        card.dataset.id = book.id;
+
+        const cover = document.createElement('div');
+        cover.className = 'book-cover';
+        if (book.cover_url) {
+          const img = document.createElement('img');
+          img.src = book.cover_url;
+          img.alt = book.name || '封面';
+          cover.appendChild(img);
         } else {
-          document.getElementById('loginView').style.display = 'none';
-          showListView();
+          const ph = document.createElement('div');
+          ph.className = 'book-cover-placeholder';
+          ph.innerText = '无封面';
+          cover.appendChild(ph);
         }
-      } catch(e) {
-        document.getElementById('loginError').textContent = '登录出错: ' + e.message;
-        document.getElementById('loginError').style.display = 'block';
+
+        const info = document.createElement('div');
+        info.className = 'book-info';
+        info.innerHTML = `<div class="book-name">${escapeHtml(book.name || '未命名')}</div>
+                          <div class="book-meta">ID: ${book.id} · ${book.created_at ? new Date(book.created_at).toLocaleString() : ''}</div>`;
+
+        const actions = document.createElement('div');
+        actions.className = 'book-actions';
+        const editBtn = document.createElement('button');
+        editBtn.innerText = '编辑';
+        editBtn.onclick = (e) => { e.stopPropagation(); openEdit(book.id); };
+        const delBtn = document.createElement('button');
+        delBtn.innerText = '删除';
+        delBtn.className = 'danger';
+        delBtn.onclick = async (e) => {
+          e.stopPropagation();
+          if (!confirm('确认删除该画册吗？')) return;
+          await deleteBook(book.id);
+        };
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+
+        card.appendChild(cover);
+        card.appendChild(info);
+        card.appendChild(actions);
+
+        card.onclick = () => openEdit(book.id);
+        container.appendChild(card);
+      });
+    }
+
+    function showEmptyState(msg) {
+      const container = document.getElementById('booksGrid');
+      container.innerHTML = `<div class="empty">${escapeHtml(msg)}</div>`;
+    }
+
+    // 打开编辑视图
+    async function openEdit(id) {
+      const res = await supabase.from('books').select('*').eq('id', id).single();
+      if (res.error) {
+        console.error('openEdit error', res.error);
+        alert('获取画册失败：' + (res.error.message || res.error));
+        return;
       }
+      const book = res.data;
+      document.getElementById('editId').value = book.id;
+      document.getElementById('editName').value = book.name || '';
+      document.getElementById('editDesc').value = book.description || '';
+      showEditView();
     }
 
-    async function logout() {
-      await supabase.auth.signOut();
-      location.reload();
+    // 删除
+    async function deleteBook(id) {
+      const { error } = await supabase.from('books').delete().eq('id', id);
+      if (error) {
+        console.error('deleteBook error', error);
+        alert('删除失败：' + (error.message || error));
+        return;
+      }
+      await renderList();
+      showListView();
     }
 
-    // 页面加载先检查登录（等 DOM 与脚本都准备好）
-    window.addEventListener('DOMContentLoaded', checkLogin);
+    // 新建画册（并回到列表并刷新）
+    async function createNewBook() {
+      const now = new Date().toISOString();
+      const defaultName = '新建画册';
+      const { data, error } = await supabase.from('books').insert([{ name: defaultName, description: '', created_at: now, updated_at: now }]).select().single();
+      if (error) {
+        console.error('createNewBook error', error);
+        alert('创建失败：' + (error.message || error));
+        return;
+      }
+      // 创建成功后直接刷新列表并进入编辑（按你之前的偏好，这里先回列表并高亮新建项）
+      await renderList();
+      showListView();
+      // 可选：跳到新建项并打开编辑
+      // openEdit(data.id);
+    }
 
-    // ==========================================
-    //  列表渲染与名称编辑
-    // ==========================================
+    // 保存编辑
+    async function saveEdit(e) {
+      e.preventDefault();
+      const id = document.getElementById('editId').value;
+      const name = document.getElementById('editName').value.trim();
+      const desc = document.getElementById('editDesc').value.trim();
+      const updated_at = new Date().toISOString();
+      const { error } = await supabase.from('books').update({ name, description: desc, updated_at }).eq('id', id);
+      if (error) {
+        console.error('saveEdit error', error);
+        alert('保存失败：' + (error.message || error));
+        return;
+      }
+      await renderList();
+      showListView();
+    }
 
-    async function showListView() {
-      // 切换视图
-      document.getElementById('loginView').style.display = 'none';
-      document.getElementById('viewEdit').style.display = 'none';
+    // helper: 删除可能的 XSS 字符
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
+    }
+
+    function showListView() {
       document.getElementById('viewList').style.display = 'block';
-
-      const grid = document.getElementById('booksGrid');
-      if (!grid) return;
-
-      grid.innerHTML = '<div style="padding:20px;color:#888">加载中…</div>';
-
-      try {
-        const { data: books, error } = await supabase
-          .from('books')
-          .select('id, name, config, updated_at')
-          .order('updated_at', { ascending: false });
-
-        if (error) {
-          grid.innerHTML = `<div style="padding:20px;color:#e74c3c">加载失败：${error.message}</div>`;
-          return;
-        }
-
-        if (!books || books.length === 0) {
-          grid.innerHTML = '<div style="padding:20px;color:#888">暂无画册，点击“+ 新建画册”创建。</div>';
-          return;
-        }
-
-        grid.innerHTML = '';
-
-        books.forEach(book => {
-          const cfg = book.config || {};
-          const cover = cfg.cover && cfg.cover.image ? cfg.cover.image : '';
-
-          const card = document.createElement('div');
-          card.className = 'book-card';
-          card.title = '点击编辑画册';
-          card.onclick = async () => {
-            currentBookId = book.id;
-            currentEditingPage = 0;
-            const { data, error } = await supabase
-              .from('books')
-              .select('config')
-              .eq('id', book.id)
-              .single();
-            if (error || !data) {
-              alert('加载失败: ' + (error?.message || '找不到画册'));
-              return;
-            }
-            config = data.config || JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-            render();
-            showEditView();
-            const frame = document.getElementById('previewFrame');
-            if (frame) {
-              frame.src = `book-ratio-adaptive.html?book=${book.id}&page=0&t=${Date.now()}`;
-            }
-          };
-
-          // cover
-          const coverDiv = document.createElement('div');
-          coverDiv.className = 'book-cover';
-          if (cover) {
-            const img = document.createElement('img');
-            img.src = cover;
-            img.alt = '封面';
-            coverDiv.appendChild(img);
-          } else {
-            const ph = document.createElement('div');
-            ph.className = 'book-cover-placeholder';
-            ph.textContent = '无图';
-            coverDiv.appendChild(ph);
-          }
-
-          // info
-          const info = document.createElement('div');
-          info.className = 'book-info';
-
-          const nameInput = document.createElement('input');
-          nameInput.type = 'text';
-          nameInput.value = book.name || '';
-          nameInput.style.cssText = 'width:100%; border:none; background:transparent; font-size:15px; font-weight:700; color:#222; margin-bottom:4px; outline:none;';
-          nameInput.title = '编辑画册名称，按 Enter 或离开保存';
-
-          let original = nameInput.value;
-          nameInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              nameInput.blur();
-            }
-          });
-          nameInput.addEventListener('blur', async () => {
-            const v = nameInput.value.trim();
-            if (v === original) return;
-            try {
-              await updateBookName(book.id, v);
-              original = v;
-            } catch (err) {
-              alert('保存失败：' + (err.message || err));
-              nameInput.value = original;
-            }
-          });
-
-          const meta = document.createElement('div');
-          meta.className = 'book-meta';
-          meta.textContent = '最近更新：' + (book.updated_at ? new Date(book.updated_at).toLocaleString() : '-');
-
-          info.appendChild(nameInput);
-          info.appendChild(meta);
-
-          // actions
-          const actions = document.createElement('div');
-          actions.className = 'book-actions';
-          const editBtn = document.createElement('button');
-          editBtn.textContent = '编辑';
-          editBtn.onclick = (e) => {
-            e.stopPropagation();
-            currentBookId = book.id;
-            currentEditingPage = 0;
-            switchBook(book.id);
-          };
-          const delBtn = document.createElement('button');
-          delBtn.className = 'danger';
-          delBtn.textContent = '删除';
-          delBtn.onclick = async (e) => {
-            e.stopPropagation();
-            if (confirm('确定删除？此操作不可恢复')) {
-              await deleteBook(book.id);
-            }
-          };
-
-          actions.appendChild(editBtn);
-          actions.appendChild(delBtn);
-
-          card.appendChild(coverDiv);
-          card.appendChild(info);
-          card.appendChild(actions);
-
-          grid.appendChild(card);
-        });
-
-      } catch (e) {
-        grid.innerHTML = `<div style="padding:20px;color:#e74c3c">出错：${e.message}</div>`;
-      }
+      document.getElementById('viewEdit').style.display = 'none';
     }
 
-    async function updateBookName(bookId, newName) {
-      if (!bookId) throw new Error('无效的书籍 ID');
-      const name = (newName || '').trim() || '未命名画册';
-      const { error } = await supabase.from('books').update({ name: name, updated_at: new Date().toISOString() }).eq('id', bookId);
-      if (error) throw error;
-      await showListView();
-    }
-
-    // ==========================================
-    //  视图切换与页跳转
-    // ==========================================
     function showEditView() {
-      document.getElementById('loginView').style.display = 'none';
       document.getElementById('viewList').style.display = 'none';
       document.getElementById('viewEdit').style.display = 'flex';
     }
 
-    function jumpToPage(pageIndex) {
-      const index = Number(pageIndex) || 0;
-      currentEditingPage = index;
-      showEditView();
-      const frame = document.getElementById('previewFrame');
-      if (!frame) return;
-      const bookID = currentBookId || '';
-      frame.src = `book-ratio-adaptive.html?book=${bookID}&page=${index}&t=${Date.now()}`;
-    }
-
-    // ==========================================
-    //  默认配置
-    // ==========================================
-    const DEFAULT_CONFIG = {
-      background: {
-        type: 'color',
-        color: '#e8e8e8',
-        image: ''
-      },
-      bookRatio: { w: 420, h: 560 },
-      showOn: { mobile: true, pc: true },
-      music: { url: '', volume: 0.5, startPage: 1 },
-      cover: {
-        type: 'image',
-        image: '',
-        html: ''
-      },
-      pages: [
-        { type: 'image', src: '' },
-        { type: 'image', src: '' },
-        { type: 'image', src: '' }
-      ],
-      backCover: {
-        type: 'image',
-        image: '',
-        html: ''
-      }
-    };
-
-    let config = null;
-    let currentBookId = null;
-    let currentEditingPage = 0; // 当前编辑的页码（0=封面，最后一页=封底）
-
-    // ==========================================
-    //  多本画册管理
-    // ==========================================
-    function getBooksIndex() {
-      try {
-        const idx = localStorage.getItem('booksIndex');
-        if (idx) return JSON.parse(idx);
-      } catch(e) {}
-      return null;
-    }
-
-    function saveBooksIndex(idx) {
-      localStorage.setItem('booksIndex', JSON.stringify(idx));
-    }
-
-    function initBooksIndex() {
-      let idx = getBooksIndex();
-      if (!idx) {
-        // 第一次使用：检查是否有旧的单本配置，迁移过来
-        const oldConfig = localStorage.getItem('bookConfig');
-        const firstId = 'book_' + Date.now();
-        if (oldConfig) {
-          localStorage.setItem('bookConfig_' + firstId, oldConfig);
-        }
-        idx = [{ id: firstId, name: '我的画册 1', updatedAt: new Date().toISOString() }];
-        saveBooksIndex(idx);
-        localStorage.setItem('currentBookId', firstId);
-      }
-      return idx;
-    }
-
-    function loadBookConfig(bookId) {
-      try {
-        const saved = localStorage.getItem('bookConfig_' + bookId);
-        if (saved) return JSON.parse(saved);
-      } catch(e) {}
-      return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-    }
-
-    async function saveBookConfig(bookId, cfg) {
-      await supabase
-        .from('books')
-        .update({ config: cfg, updated_at: new Date().toISOString() })
-        .eq('id', bookId);
-    }
-
-    function renderBookSelector() {
-      const select = document.getElementById('bookSelect');
-      if (!select) return; // 编辑页已无此元素，忽略
-      select.innerHTML = '';
-      const idx = getBooksIndex();
-      idx.forEach(book => {
-        const opt = document.createElement('option');
-        opt.value = book.id;
-        opt.textContent = book.name;
-        if (book.id === currentBookId) opt.selected = true;
-        select.appendChild(opt);
-      });
-
-      // 收集所有已存在的分类，填充到输入提示里
-      const categories = new Set();
-      idx.forEach(book => {
-        const cat = book.config?.category;
-        if (cat) categories.add(cat);
-      });
-      const datalist = document.getElementById('categoryList');
-      if (datalist) {
-        datalist.innerHTML = '';
-        categories.forEach(cat => {
-          const opt = document.createElement('option');
-          opt.value = cat;
-          datalist.appendChild(opt);
-        });
-      }
-    }
-
-    async function switchBook(bookId) {
-      currentBookId = bookId;
-      const { data, error } = await supabase
-        .from('books')
-        .select('config')
-        .eq('id', bookId)
-        .single();
-      if (error || !data) {
-        alert('加载失败: ' + (error?.message || '找不到画册'));
-        return;
-      }
-      config = data.config || JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-      render();
-      showEditView();
-      const frame = document.getElementById('previewFrame');
-      if (frame) {
-        frame.src = `book-ratio-adaptive.html?book=${bookId}&page=${currentEditingPage || 0}&t=${Date.now()}`;
-      }
-    }
-
-    async function newBook() {
-      const { data, error } = await supabase
-        .from('books')
-        .insert({ name: '未命名画册', config: DEFAULT_CONFIG })
-        .select()
-        .single();
-      if (error) {
-        alert('创建失败: ' + error.message);
-        return;
-      }
-      currentBookId = data.id;
-      currentEditingPage = 0;
-      config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-      render();
-      showEditView();
-      const frame = document.getElementById('previewFrame');
-      if (frame) {
-        frame.src = 'book-ratio-adaptive.html?book=' + data.id + '&page=0&t=' + Date.now();
-      }
-    }
-
-    async function deleteBook(bookId) {
-      const id = bookId || currentBookId;
-      if (!confirm('确定删除？此操作不可恢复')) return;
-      const { error } = await supabase.from('books').delete().eq('id', id);
-      if (error) {
-        alert('删除失败: ' + error.message);
-        return;
-      }
+    // 页面载入
+    window.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('btnNew').addEventListener('click', createNewBook);
+      document.getElementById('btnBack').addEventListener('click', () => { renderList(); showListView(); });
+      document.getElementById('editForm').addEventListener('submit', saveEdit);
+      // 初次渲染
+      await renderList();
       showListView();
-    }
-
-    function duplicateBook() {
-      const idx = getBooksIndex();
-      const old = idx.find(b => b.id === currentBookId);
-      if (!old) return;
-      const name = prompt('复制为：', old.name + ' 副本');
-      if (!name) return;
-      const id = 'book_' + Date.now();
-      const oldCfg = loadBookConfig(currentBookId);
-      saveBookConfig(id, JSON.parse(JSON.stringify(oldCfg)));
-      idx.push({ id, name, updatedAt: new Date().toISOString() });
-      saveBooksIndex(idx);
-      renderBookSelector();
-      switchBook(id);
-      showEditView();
-    }
-
-    // ==========================================
-    //  配置读写（当前选中的画册）
-    // ==========================================
-    function loadConfig() {
-      return loadBookConfig(currentBookId);
-    }
-
-    function saveConfig() {
-      saveBookConfig(currentBookId, config);
-      const frame = document.getElementById('previewFrame');
-      if (frame) {
-        frame.src = `book-ratio-adaptive.html?book=${currentBookId}&page=${currentEditingPage || 0}&t=${Date.now()}`;
-      }
-    }
-
-    // ==========================================
-    //  渲染表单
-    // ==========================================
-    function render() {
-      // 全局
-      document.getElementById('bgColor').value = config.background.color;
-      document.getElementById('bgImage').value = config.background.image;
-      document.getElementById('ratioW').value = config.bookRatio.w;
-      document.getElementById('ratioH').value = config.bookRatio.h;
-      document.getElementById('showMobile').checked = config.showOn?.mobile !== false;
-      document.getElementById('showPc').checked = config.showOn?.pc !== false;
-      document.getElementById('bookCategory').value = config.category || '';
-      document.getElementById('musicUrl').value = config.music?.url || '';
-      document.getElementById('musicVolume').value = config.music?.volume || 0.5;
-      document.getElementById('musicVolumeText').innerText = config.music?.volume || 0.5;
-      document.getElementById('musicStartPage').value = config.music?.startPage || 1;
-
-      // 封面
-      document.getElementById('coverImage').value = config.cover.image;
-
-      // 内页
-      renderPages();
-
-      // 封底
-      setBackType(config.backCover.type, false);
-      document.getElementById('backImage').value = config.backCover.image;
-
-      // 更新缩略图
-      updateBgThumb();
-      updateCoverThumb();
-      updateBackThumb();
-
-      // 绑定封底 HTML 按钮
-      const backBtn = document.getElementById('backHtmlBtn');
-      if (backBtn) {
-        backBtn.onclick = () => openBackHtmlEditor();
-        backBtn.textContent = config.backCover.html ? '已编辑，点击修改' : '点击编辑HTML内容';
-      }
-    }
-
-    function renderPages() {
-      const list = document.getElementById('pagesList');
-      list.innerHTML = '';
-      config.pages.forEach((page, idx) => {
-        const card = document.createElement('div');
-        card.className = 'page-card';
-        card.onmousedown = () => { jumpToPage(Math.floor((idx + 2) / 2)); };
-        card.innerHTML = `
-          <div class="page-card-header">
-            <div class="page-card-title">第 ${idx + 1} 页</div>
-            <div class="page-card-actions">
-              <button onclick="movePage(${idx}, -1)" title="上移">↑</button>
-              <button onclick="movePage(${idx}, 1)" title="下移">↓</button>
-              <button class="delete" onclick="removePage(${idx})" title="删除">✕</button>
-            </div>
-          </div>
-          <div class="type-toggle">
-            <button class="${page.type === 'image' ? 'active' : ''}" onclick="setPageType(${idx}, 'image')">纯图片</button>
-            <button class="${page.type === 'html' ? 'active' : ''}" onclick="setPageType(${idx}, 'html')">HTML 内容</button>
-          </div>
-          <div id="page-${idx}-imageWrap" style="${page.type === 'image' ? '' : 'display:none'}">
-            <div class="form-row">
-              <label>图片</label>
-              <div style="display:flex; gap:10px; align-items:flex-start;">
-                <div id="page-${idx}-thumb" style="width:60px; height:60px; border-radius:4px; overflow:hidden; background:#2a2a3c; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                  ${page.src ? `<img src="${page.src}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="font-size:10px; color:#666;">空</span>'}
-                </div>
-                <div style="flex:1; display:flex; gap:6px;">
-                  <input type="text" value="${page.src || ''}" placeholder="粘贴链接或上传" oninput="setPageSrc(${idx}, this.value); updateThumb(${idx});" style="flex:1; margin:0;">
-                  <button class="upload-btn" style="margin:0; width:auto; padding:0 10px; flex-shrink:0;" onclick="document.getElementById('pageUpload-${idx}').click()">📁</button>
-                </div>
-              </div>
-              <input type="file" id="pageUpload-${idx}" accept="image/*" style="display:none" onchange="handleUpload(event, null, ${idx})">
-            </div>
-          </div>
-          <div id="page-${idx}-htmlWrap" style="${page.type === 'html' ? '' : 'display:none'}">
-            <div class="form-row">
-              <label>HTML 内容</label>
-              <button id="page-${idx}-htmlBtn" style="width:100%; padding:10px; background:#2a2a3c; border:1px solid #444; border-radius:6px; color:#aaa; cursor:pointer; text-align:left; font-size:12px;">${page.html ? '已编辑，点击修改' : '点击编辑HTML内容'}</button>
-            </div>
-          </div>
-        `;
-        list.appendChild(card);
-        const htmlBtn = document.getElementById(`page-${idx}-htmlBtn`);
-        if (htmlBtn) {
-          htmlBtn.onclick = () => openHtmlEditor(idx);
-        }
-        const addBtn = document.createElement('button');
-        addBtn.textContent = '+';
-        addBtn.style.cssText = 'display:block; margin:8px auto; width:22px; height:22px; line-height:20px; padding:0; border:none; border-radius:50%; background:#333; color:#888; font-size:14px; cursor:pointer;';
-        addBtn.onmouseover = () => { addBtn.style.background = '#6c5ce7'; addBtn.style.color = '#fff'; };
-        addBtn.onmouseout = () => { addBtn.style.background = '#333'; addBtn.style.color = '#888'; };
-        addBtn.onclick = () => insertPageAfter(idx);
-        list.appendChild(addBtn);
-      });
-      document.getElementById('pageCount').textContent = config.pages.length;
-    }
-
-    // ==========================================
-    //  操作
-    // ==========================================
-    function setCoverType(type, save = true) {
-      config.cover.type = type;
-      document.getElementById('coverTypeHtml').classList.toggle('active', type === 'html');
-      document.getElementById('coverTypeImage').classList.toggle('active', type === 'image');
-      document.getElementById('coverHtmlWrap').style.display = type === 'html' ? '' : 'none';
-      document.getElementById('coverImageWrap').style.display = type === 'image' ? '' : 'none';
-      if (save) updateConfig();
-    }
-
-    function setBackType(type, save = true) {
-      config.backCover.type = type;
-      document.getElementById('backTypeHtml').classList.toggle('active', type === 'html');
-      document.getElementById('backTypeImage').classList.toggle('active', type === 'image');
-      document.getElementById('backHtmlWrap').style.display = type === 'html' ? '' : 'none';
-      document.getElementById('backImageWrap').style.display = type === 'image' ? '' : 'none';
-      if (save) updateConfig();
-    }
-
-    function addPage() {
-      config.pages.push({ type: 'image', src: '' });
-      renderPages();
-      updateConfig();
-    }
-
-    // 在指定位置后面插入新页
-    function insertPageAfter(idx) {
-      config.pages.splice(idx + 1, 0, { type: 'image', src: '' });
-      renderPages();
-      updateConfig();
-    }
-
-    // HTML 弹窗编辑
-    let editingType = ''; // 'page' | 'back'
-    let editingPageIdx = null;
-    function openHtmlEditor(idx) {
-      editingType = 'page';
-      editingPageIdx = idx;
-      document.getElementById('htmlEditor').value = config.pages[idx].html || '';
-      document.getElementById('htmlModal').style.display = 'flex';
-    }
-    function openBackHtmlEditor() {
-      editingType = 'back';
-      editingPageIdx = null;
-      document.getElementById('htmlEditor').value = config.backCover.html || '';
-      document.getElementById('htmlModal').style.display = 'flex';
-    }
-
-    function updateConfig() {
-      const frame = document.getElementById('previewFrame');
-      if (frame && currentBookId) {
-        frame.src = `book-ratio-adaptive.html?book=${currentBookId}&page=${currentEditingPage || 0}&t=${Date.now()}`;
-      }
-    }
-
-    function openPreview() {
-      if (!currentBookId) return;
-      window.open(`book-ratio-adaptive.html?book=${currentBookId}&page=${currentEditingPage || 0}`, '_blank');
-    }
-
-    function exportBook() {
-      if (!config) return;
-      const json = JSON.stringify(config, null, 2);
-      console.log(json);
-    }
-
-    function importImages(event) {
-      const input = event.target;
-      const files = Array.from(input.files || []);
-      if (!files.length) return;
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          if (!config.pages.length) config.pages.push({ type: 'image', src: '' });
-          config.pages.push({ type: 'image', src: e.target.result });
-          renderPages();
-          updateConfig();
-        };
-        reader.readAsDataURL(file);
-      });
-      input.value = '';
-    }
-
-    function handleBgUpload(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        document.getElementById('bgImage').value = e.target.result;
-        config.background.image = e.target.result;
-        updateConfig();
-        updateBgThumb();
-      };
-      reader.readAsDataURL(file);
-      event.target.value = '';
-    }
-
-    function handleMusicUpload(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        document.getElementById('musicUrl').value = e.target.result;
-        config.music.url = e.target.result;
-        updateConfig();
-      };
-      reader.readAsDataURL(file);
-      event.target.value = '';
-    }
-
-    function handleUpload(event, targetField, pageIndex = null) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const dataUrl = e.target.result;
-        if (pageIndex !== null) {
-          config.pages[pageIndex].src = dataUrl;
-          renderPages();
-        } else if (targetField) {
-          document.getElementById(targetField).value = dataUrl;
-          if (targetField === 'coverImage') config.cover.image = dataUrl;
-          if (targetField === 'backImage') config.backCover.image = dataUrl;
-        }
-        updateConfig();
-      };
-      reader.readAsDataURL(file);
-      event.target.value = '';
-    }
-
-    function updateBgThumb() {
-      const bgImage = document.getElementById('bgImage').value || '';
-      const bgThumb = document.getElementById('bgThumb');
-      if (!bgThumb) return;
-      if (bgImage) {
-        bgThumb.innerHTML = `<img src="${bgImage}" style="width:100%;height:100%;object-fit:cover;">`;
-      } else {
-        bgThumb.innerHTML = '<span style="font-size:10px;color:#666;">空</span>';
-      }
-    }
-
-    function updateCoverThumb() {
-      const coverImage = document.getElementById('coverImage').value || '';
-      const coverThumb = document.getElementById('coverThumb');
-      if (!coverThumb) return;
-      if (coverImage) {
-        coverThumb.innerHTML = `<img src="${coverImage}" style="width:100%;height:100%;object-fit:cover;">`;
-      } else {
-        coverThumb.innerHTML = '<span style="font-size:10px;color:#666;">空</span>';
-      }
-    }
-
-    function updateBackThumb() {
-      const backImage = document.getElementById('backImage').value || '';
-      const backThumb = document.getElementById('backThumb');
-      if (!backThumb) return;
-      if (backImage) {
-        backThumb.innerHTML = `<img src="${backImage}" style="width:100%;height:100%;object-fit:cover;">`;
-      } else {
-        backThumb.innerHTML = '<span style="font-size:10px;color:#666;">空</span>';
-      }
-    }
-
-    function updateThumb(pageIndex) {
-      const page = config.pages[pageIndex];
-      const el = document.getElementById(`page-${pageIndex}-thumb`);
-      if (!el) return;
-      if (page && page.src) {
-        el.innerHTML = `<img src="${page.src}" style="width:100%;height:100%;object-fit:cover;">`;
-      } else {
-        el.innerHTML = '<span style="font-size:10px;color:#666;">空</span>';
-      }
-    }
-
-    function setPageType(index, type) {
-      config.pages[index].type = type;
-      renderPages();
-      updateConfig();
-    }
-
-    function setPageSrc(index, src) {
-      config.pages[index].src = src;
-    }
-
-    function movePage(index, dir) {
-      const target = index + dir;
-      if (target < 0 || target >= config.pages.length) return;
-      [config.pages[index], config.pages[target]] = [config.pages[target], config.pages[index]];
-      renderPages();
-      updateConfig();
-    }
-
-    function removePage(index) {
-      if (config.pages.length <= 1) return;
-      config.pages.splice(index, 1);
-      renderPages();
-      updateConfig();
-    }
-
-    async function saveBook() {
-      if (!currentBookId) return;
-      await saveBookConfig(currentBookId, config);
-    }
-
-    // 兼容历史调用
-    function showListView() {
-      document.getElementById('loginView').style.display = 'none';
-      document.getElementById('viewEdit').style.display = 'none';
-      document.getElementById('viewList').style.display = 'block';
-    }
-
+    });
   </script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; background: #f5f5f5; color: #333; }
+    .container { padding: 28px; }
+    .list-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+    .btn { padding:10px 14px; border-radius:8px; border: none; cursor:pointer; }
+    .btn-primary { background:#e63946; color:#fff; }
+    .books-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap:20px; }
+    .book-card { background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.06); cursor:pointer; }
+    .book-cover { width:100%; aspect-ratio:3/4; background:#eee; display:flex; align-items:center; justify-content:center; }
+    .book-cover img { width:100%; height:100%; object-fit:cover; }
+    .book-info { padding:12px; }
+    .book-actions { display:flex; gap:8px; padding:12px; }
+    .book-actions button { flex:1; padding:8px; border-radius:6px; border:1px solid #ddd; background:#fff; }
+    .book-actions button.danger { border-color:#e63946; color:#e63946; }
+    .view-edit { display:none; height:calc(100vh - 56px); }
+    .edit-panel { width:380px; background:#1e1e2e; color:#ddd; padding:16px; }
+    .edit-main { flex:1; padding:16px; }
+    .row { margin-bottom:12px; }
+    input, textarea { width:100%; padding:8px; border-radius:6px; border:1px solid #ccc; }
+    .loading, .empty { padding:20px; color:#666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="viewList" class="view-list">
+      <div class="list-header">
+        <h1>我的画册</h1>
+        <div>
+          <button id="btnNew" class="btn btn-primary">+ 新建画册</button>
+        </div>
+      </div>
+      <div id="booksGrid" class="books-grid"></div>
+    </div>
+
+    <div id="viewEdit" class="view-edit" style="display:none;">
+      <div class="edit-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div style="font-weight:700">编辑画册</div>
+          <button id="btnBack" class="btn">← 返回</button>
+        </div>
+        <form id="editForm">
+          <input type="hidden" id="editId" />
+          <div class="row">
+            <label>名称</label>
+            <input id="editName" required />
+          </div>
+          <div class="row">
+            <label>描述</label>
+            <textarea id="editDesc" rows="6"></textarea>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button type="submit" class="btn btn-primary">保存</button>
+            <button type="button" class="btn" onclick="showListView()">取消</button>
+          </div>
+        </form>
+      </div>
+      <div class="edit-main">
+        <iframe id="previewFrame" style="width:100%; height:100%; border:0; background:#fff;" src="about:blank"></iframe>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
