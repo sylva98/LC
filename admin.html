@@ -424,10 +424,10 @@
   <div style="background:#1a1a2e; padding:40px; border-radius:12px; width:90%; max-width:360px;">
     <h2 style="margin:0 0 24px; color:#fff; font-size:20px; text-align:center;">管理后台登录</h2>
     <div style="margin-bottom:16px;">
-      <input type="text" id="loginUser" placeholder="账号" style="width:100%; padding:12px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#fff; font-size:14px; box-sizing:borde[...]
+      <input type="text" id="loginUser" placeholder="账号" style="width:100%; padding:12px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#fff; font-size:14px; box-sizing:border-box;">
     </div>
     <div style="margin-bottom:24px;">
-      <input type="password" id="loginPass" placeholder="密码" style="width:100%; padding:12px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#fff; font-size:14px; box-sizing:b[...]
+      <input type="password" id="loginPass" placeholder="密码" style="width:100%; padding:12px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#fff; font-size:14px; box-sizing:border-box;">
     </div>
     <button onclick="doLogin()" style="width:100%; padding:12px; background:#6c5ce7; border:none; border-radius:6px; color:#fff; font-size:14px; cursor:pointer;">登录</button>
     <div id="loginError" style="color:#e74c3c; font-size:12px; text-align:center; margin-top:12px; display:none;">账号或密码错误</div>
@@ -680,7 +680,8 @@
         type: 'image',
         image: '',
         html: ''
-      },      pages: [
+      },
+      pages: [
         { type: 'image', src: '' },
         { type: 'image', src: '' },
         { type: 'image', src: '' }
@@ -916,7 +917,7 @@
             <div class="form-row">
               <label>图片</label>
               <div style="display:flex; gap:10px; align-items:flex-start;">
-                <div id="page-${idx}-thumb" style="width:60px; height:60px; border-radius:4px; overflow:hidden; background:#2a2a3c; display:flex; align-items:center; justify-content:center; flex-shrin[...]
+                <div id="page-${idx}-thumb" style="width:60px; height:60px; border-radius:4px; overflow:hidden; background:#2a2a3c; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                   ${page.src ? `<img src="${page.src}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="font-size:10px; color:#666;">空</span>'}
                 </div>
                 <div style="flex:1; display:flex; gap:6px;">
@@ -930,7 +931,7 @@
           <div id="page-${idx}-htmlWrap" style="${page.type === 'html' ? '' : 'display:none'}">
             <div class="form-row">
               <label>HTML 内容</label>
-              <button id="page-${idx}-htmlBtn" style="width:100%; padding:10px; background:#2a2a3c; border:1px solid #444; border-radius:6px; color:#aaa; cursor:pointer; text-align:left; font-size:12p[...]
+              <button id="page-${idx}-htmlBtn" style="width:100%; padding:10px; background:#2a2a3c; border:1px solid #444; border-radius:6px; color:#aaa; cursor:pointer; text-align:left; font-size:12px;">
                 ${page.html ? '已编辑，点击修改' : '点击编辑HTML内容'}
               </button>
             </div>
@@ -945,7 +946,7 @@
         // 卡片下面的插入按钮
         const addBtn = document.createElement('button');
         addBtn.textContent = '+';
-        addBtn.style.cssText = 'display:block; margin:8px auto; width:22px; height:22px; line-height:20px; padding:0; border:none; border-radius:50%; background:#333; color:#888; font-size:14px; curso[...]
+        addBtn.style.cssText = 'display:block; margin:8px auto; width:22px; height:22px; line-height:20px; padding:0; border:none; border-radius:50%; background:#333; color:#888; font-size:14px; cursor:pointer;';
         addBtn.onmouseover = () => { addBtn.style.background = '#6c5ce7'; addBtn.style.color = '#fff'; };
         addBtn.onmouseout = () => { addBtn.style.background = '#333'; addBtn.style.color = '#888'; };
         addBtn.onclick = () => insertPageAfter(idx);
@@ -998,43 +999,53 @@
       document.getElementById('htmlModal').style.display = 'flex';
     }
     function openBackHtmlEditor() {
+      // 由 HTML 编辑器处理
     }
 
-    // ====== 这里插入压缩上传逻辑 ======
-    function readFileAsDataURL(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error('读取图片失败'));
-        reader.readAsDataURL(file);
-      });
-    }
-
-    function loadImageFromDataURL(dataUrl) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error('图片解码失败'));
-        img.src = dataUrl;
-      });
-    }
+    // ====== 客户端压缩 + Storage 上传逻辑 ======
+    const IMAGE_BUCKET = 'uploads';
+    const IMAGE_MAX_SIDE = 2000;
+    const IMAGE_QUALITY = 0.85;
 
     function supportsWebP() {
       try {
         const canvas = document.createElement('canvas');
-        return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+        return !!canvas.toDataURL && canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
       } catch (e) {
         return false;
       }
     }
 
-    async function compressImageToDataURL(file, maxSide = 2000, quality = 0.85) {
-      if (!file || !file.type || !file.type.startsWith('image/')) {
-        throw new Error('请选择图片文件');
+    function blobToFile(blob, name) {
+      try {
+        return new File([blob], name, { type: blob.type });
+      } catch (e) {
+        const file = blob;
+        file.name = name;
+        return file;
       }
+    }
 
-      const dataUrl = await readFileAsDataURL(file);
-      const img = await loadImageFromDataURL(dataUrl);
+    function publicUrlToStoragePath(publicUrl) {
+      if (!publicUrl) return null;
+      const marker = '/storage/v1/object/public/' + IMAGE_BUCKET + '/';
+      const idx = publicUrl.indexOf(marker);
+      if (idx === -1) return null;
+      return decodeURIComponent(publicUrl.slice(idx + marker.length));
+    }
+
+    async function compressImageFile(file, maxSide = IMAGE_MAX_SIDE, quality = IMAGE_QUALITY) {
+      const img = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = () => reject(new Error('图片解码失败'));
+          image.src = reader.result;
+        };
+        reader.onerror = () => reject(new Error('读取图片失败'));
+        reader.readAsDataURL(file);
+      });
 
       let width = img.naturalWidth || img.width;
       let height = img.naturalHeight || img.height;
@@ -1048,59 +1059,147 @@
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('当前浏览器不支持 canvas');
 
-      const mime = supportsWebP() ? 'image/webp' : 'image/jpeg';
-      if (mime === 'image/jpeg') {
+      const mimeType = supportsWebP() ? 'image/webp' : 'image/jpeg';
+      if (mimeType === 'image/jpeg') {
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, width, height);
       }
       ctx.drawImage(img, 0, 0, width, height);
 
-      return canvas.toDataURL(mime, quality);
+      return await new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (!blob) return reject(new Error('压缩图片失败'));
+          resolve(blob);
+        }, mimeType, quality);
+      });
+    }
+
+    async function uploadImageToStorage(file) {
+      const ext = file.type && file.type.includes('png') ? 'png'
+        : file.type && file.type.includes('webp') ? 'webp'
+        : 'jpg';
+      const safeName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const path = `book-images/${safeName}`;
+
+      const { data, error } = await supabase.storage.from(IMAGE_BUCKET).upload(path, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+      if (error) throw error;
+      const publicUrl = supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
+      return publicUrl;
+    }
+
+    async function isUrlReferencedElsewhere(publicUrl, currentBookIdToSkip) {
+      if (!publicUrl) return false;
+      const { data, error } = await supabase.from('books').select('id, config');
+      if (error) {
+        console.error('检查旧图引用失败', error);
+        return true;
+      }
+
+      for (const row of data || []) {
+        if (row.id === currentBookIdToSkip) continue;
+        try {
+          if (JSON.stringify(row.config || {}).includes(publicUrl)) {
+            return true;
+          }
+        } catch (e) {
+          // 忽略 JSON 解析异常
+        }
+      }
+      return false;
+    }
+
+    async function maybeDeleteOldImage(oldPublicUrl, currentBookIdToSkip) {
+      if (!oldPublicUrl) return;
+      const storagePath = publicUrlToStoragePath(oldPublicUrl);
+      if (!storagePath) return; // 不是 storage 的 URL，跳过
+
+      const referenced = await isUrlReferencedElsewhere(oldPublicUrl, currentBookIdToSkip);
+      if (referenced) {
+        console.log('旧图片仍被其它画册引用，跳过删除');
+        return;
+      }
+
+      const { error } = await supabase.storage.from(IMAGE_BUCKET).remove([storagePath]);
+      if (error) {
+        console.warn('删除旧图片失败', error);
+      } else {
+        console.log('已删除旧图片', storagePath);
+      }
+    }
+
+    function getTargetValue(targetField, pageIdx) {
+      if (pageIdx !== null && config && config.pages && config.pages[pageIdx]) {
+        return config.pages[pageIdx].src || '';
+      }
+      if (targetField === 'coverImage') return config?.cover?.image || '';
+      if (targetField === 'backImage') return config?.backCover?.image || '';
+      if (targetField === 'bgImage') return config?.background?.image || '';
+      const input = document.getElementById(targetField);
+      return input ? input.value || '' : '';
     }
 
     async function handleUpload(event, targetField, pageIdx = null) {
       const file = event.target && event.target.files ? event.target.files[0] : null;
       if (!file) return;
 
-      try {
-        const compressedDataUrl = await compressImageToDataURL(file, 2000, 0.85);
+      const oldValue = getTargetValue(targetField, pageIdx);
 
-        if (pageIdx !== null && config && config.pages && config.pages[pageIdx]) {
-          config.pages[pageIdx].src = compressedDataUrl;
-          renderPages();
-          updateConfig();
-          if (event.target) event.target.value = '';
-          return;
+      try {
+        const compressedBlob = await compressImageFile(file, IMAGE_MAX_SIDE, IMAGE_QUALITY);
+        const uploadFile = blobToFile(compressedBlob, file.name || `upload-${Date.now()}.jpg`);
+
+        let newUrl = '';
+        try {
+          newUrl = await uploadImageToStorage(uploadFile);
+        } catch (storageError) {
+          console.warn('Supabase Storage 上传失败，回退为 dataURL', storageError);
+          const reader = new FileReader();
+          newUrl = await new Promise((resolve, reject) => {
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error('读取图片失败'));
+            reader.readAsDataURL(uploadFile);
+          });
         }
 
-        if (targetField === 'coverImage') {
-          config.cover.image = compressedDataUrl;
-          document.getElementById('coverImage').value = compressedDataUrl;
+        if (pageIdx !== null && config && config.pages && config.pages[pageIdx]) {
+          config.pages[pageIdx].src = newUrl;
+          renderPages();
+        } else if (targetField === 'coverImage') {
+          config.cover.image = newUrl;
+          document.getElementById('coverImage').value = newUrl;
           updateCoverThumb();
         } else if (targetField === 'backImage') {
-          config.backCover.image = compressedDataUrl;
-          document.getElementById('backImage').value = compressedDataUrl;
+          config.backCover.image = newUrl;
+          document.getElementById('backImage').value = newUrl;
           updateBackThumb();
         } else if (targetField === 'bgImage') {
-          config.background.image = compressedDataUrl;
-          document.getElementById('bgImage').value = compressedDataUrl;
+          config.background.image = newUrl;
+          document.getElementById('bgImage').value = newUrl;
           updateBgThumb();
         } else if (targetField) {
           const input = document.getElementById(targetField);
-          if (input) input.value = compressedDataUrl;
+          if (input) input.value = newUrl;
         }
 
         updateConfig();
+
+        if (oldValue && oldValue !== newUrl && oldValue.startsWith('https://') && oldValue.includes('/storage/v1/object/public/' + IMAGE_BUCKET + '/')) {
+          await maybeDeleteOldImage(oldValue, currentBookId);
+        }
       } catch (error) {
-        console.error('图片压缩失败:', error);
-        alert('图片压缩失败：' + (error.message || '未知错误'));
+        console.error('图片处理失败:', error);
+        alert('图片处理失败：' + (error.message || '未知错误'));
       } finally {
         if (event.target) event.target.value = '';
       }
     }
 
-    async function handleBgUpload(event) {
-      await handleUpload(event, 'bgImage');
+    function handleBgUpload(event) {
+      return handleUpload(event, 'bgImage');
     }
 
     async function importImages(event) {
@@ -1109,21 +1208,32 @@
 
       try {
         for (const file of files) {
-          const compressedDataUrl = await compressImageToDataURL(file, 2000, 0.85);
-          config.pages.push({ type: 'image', src: compressedDataUrl });
+          const compressedBlob = await compressImageFile(file, IMAGE_MAX_SIDE, IMAGE_QUALITY);
+          const uploadFile = blobToFile(compressedBlob, file.name || `import-${Date.now()}.jpg`);
+          let imageUrl = '';
+          try {
+            imageUrl = await uploadImageToStorage(uploadFile);
+          } catch (storageError) {
+            console.warn('批量上传 Storage 失败，回退为 dataURL', storageError);
+            const reader = new FileReader();
+            imageUrl = await new Promise((resolve, reject) => {
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = () => reject(new Error('读取图片失败'));
+              reader.readAsDataURL(uploadFile);
+            });
+          }
+          config.pages.push({ type: 'image', src: imageUrl });
         }
         renderPages();
         updateConfig();
       } catch (error) {
-        console.error('批量图片压缩失败:', error);
-        alert('批量图片压缩失败：' + (error.message || '未知错误'));
+        console.error('批量图片处理失败:', error);
+        alert('批量图片处理失败：' + (error.message || '未知错误'));
       } finally {
         if (event.target) event.target.value = '';
       }
     }
-
-    // ====== 压缩上传逻辑结束 ======
-
+    // ====== 客户端压缩 + Storage 上传逻辑结束 ======
   </script>
 </body>
 </html>
