@@ -345,6 +345,7 @@
       width: 100%;
       height: 100%;
       border: none;
+      display: block;
     }
     .preview-badge {
       position: absolute;
@@ -703,6 +704,27 @@
 
           const card = document.createElement('div');
           card.className = 'book-card';
+          card.title = '点击编辑画册';
+          card.onclick = async () => {
+            currentBookId = book.id;
+            currentEditingPage = 0;
+            const { data, error } = await supabase
+              .from('books')
+              .select('config')
+              .eq('id', book.id)
+              .single();
+            if (error || !data) {
+              alert('加载失败: ' + (error?.message || '找不到画册'));
+              return;
+            }
+            config = data.config || JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+            render();
+            showEditView();
+            const frame = document.getElementById('previewFrame');
+            if (frame) {
+              frame.src = `book-ratio-adaptive.html?book=${book.id}&page=0&t=${Date.now()}`;
+            }
+          };
 
           // cover
           const coverDiv = document.createElement('div');
@@ -729,7 +751,6 @@
           nameInput.style.cssText = 'width:100%; border:none; background:transparent; font-size:15px; font-weight:700; color:#222; margin-bottom:4px; outline:none;';
           nameInput.title = '编辑画册名称，按 Enter 或离开保存';
 
-          // save on blur or Enter
           let original = nameInput.value;
           nameInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -761,17 +782,21 @@
           actions.className = 'book-actions';
           const editBtn = document.createElement('button');
           editBtn.textContent = '编辑';
-          editBtn.addEventListener('click', () => {
+          editBtn.onclick = (e) => {
+            e.stopPropagation();
+            currentBookId = book.id;
+            currentEditingPage = 0;
             switchBook(book.id);
-            document.getElementById('viewList').style.display = 'none';
-            document.getElementById('viewEdit').style.display = 'flex';
-          });
+          };
           const delBtn = document.createElement('button');
           delBtn.className = 'danger';
           delBtn.textContent = '删除';
-          delBtn.addEventListener('click', () => {
-            if (confirm('确定删除？此操作不可恢复')) deleteBook(book.id);
-          });
+          delBtn.onclick = async (e) => {
+            e.stopPropagation();
+            if (confirm('确定删除？此操作不可恢复')) {
+              await deleteBook(book.id);
+            }
+          };
 
           actions.appendChild(editBtn);
           actions.appendChild(delBtn);
@@ -790,11 +815,29 @@
 
     async function updateBookName(bookId, newName) {
       if (!bookId) throw new Error('无效的书籍 ID');
-      const name = (newName || '').trim();
+      const name = (newName || '').trim() || '未命名画册';
       const { error } = await supabase.from('books').update({ name: name, updated_at: new Date().toISOString() }).eq('id', bookId);
       if (error) throw error;
-      // refresh list metadata (best-effort)
-      showListView();
+      await showListView();
+    }
+
+    // ==========================================
+    //  视图切换与页跳转
+    // ==========================================
+    function showEditView() {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('viewList').style.display = 'none';
+      document.getElementById('viewEdit').style.display = 'flex';
+    }
+
+    function jumpToPage(pageIndex) {
+      const index = Number(pageIndex) || 0;
+      currentEditingPage = index;
+      showEditView();
+      const frame = document.getElementById('previewFrame');
+      if (!frame) return;
+      const bookID = currentBookId || '';
+      frame.src = `book-ratio-adaptive.html?book=${bookID}&page=${index}&t=${Date.now()}`;
     }
 
     // ==========================================
@@ -813,7 +856,8 @@
         type: 'image',
         image: '',
         html: ''
-      },      pages: [
+      },
+      pages: [
         { type: 'image', src: '' },
         { type: 'image', src: '' },
         { type: 'image', src: '' }
@@ -916,11 +960,13 @@
         alert('加载失败: ' + (error?.message || '找不到画册'));
         return;
       }
-      config = data.config;
+      config = data.config || JSON.parse(JSON.stringify(DEFAULT_CONFIG));
       render();
-      // 刷新预览
+      showEditView();
       const frame = document.getElementById('previewFrame');
-      frame.src = 'book-ratio-adaptive.html?book=' + bookId;
+      if (frame) {
+        frame.src = `book-ratio-adaptive.html?book=${bookId}&page=${currentEditingPage || 0}&t=${Date.now()}`;
+      }
     }
 
     async function newBook() {
@@ -934,12 +980,14 @@
         return;
       }
       currentBookId = data.id;
+      currentEditingPage = 0;
       config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
       render();
-      document.getElementById('viewList').style.display = 'none';
-      document.getElementById('viewEdit').style.display = 'flex';
+      showEditView();
       const frame = document.getElementById('previewFrame');
-      frame.src = 'book-ratio-adaptive.html?book=' + data.id;
+      if (frame) {
+        frame.src = 'book-ratio-adaptive.html?book=' + data.id + '&page=0&t=' + Date.now();
+      }
     }
 
     async function deleteBook(bookId) {
@@ -978,7 +1026,6 @@
 
     function saveConfig() {
       saveBookConfig(currentBookId, config);
-      // 直接刷新预览框，加时间戳强制刷新
       const frame = document.getElementById('previewFrame');
       if (frame) {
         frame.src = `book-ratio-adaptive.html?book=${currentBookId}&page=${currentEditingPage || 0}&t=${Date.now()}`;
@@ -1068,12 +1115,10 @@
           </div>
         `;
         list.appendChild(card);
-        // 绑定 HTML 编辑按钮
         const htmlBtn = document.getElementById(`page-${idx}-htmlBtn`);
         if (htmlBtn) {
           htmlBtn.onclick = () => openHtmlEditor(idx);
         }
-        // 卡片下面的插入按钮
         const addBtn = document.createElement('button');
         addBtn.textContent = '+';
         addBtn.style.cssText = 'display:block; margin:8px auto; width:22px; height:22px; line-height:20px; padding:0; border:none; border-radius:50%; background:#333; color:#888; font-size:14px; cursor:pointer;';
@@ -1135,7 +1180,168 @@
       document.getElementById('htmlModal').style.display = 'flex';
     }
 
-    // (其余脚本保持不变...)
+    function updateConfig() {
+      const frame = document.getElementById('previewFrame');
+      if (frame && currentBookId) {
+        frame.src = `book-ratio-adaptive.html?book=${currentBookId}&page=${currentEditingPage || 0}&t=${Date.now()}`;
+      }
+    }
+
+    function openPreview() {
+      if (!currentBookId) return;
+      window.open(`book-ratio-adaptive.html?book=${currentBookId}&page=${currentEditingPage || 0}`, '_blank');
+    }
+
+    function exportBook() {
+      if (!config) return;
+      const json = JSON.stringify(config, null, 2);
+      console.log(json);
+    }
+
+    function importImages(event) {
+      const input = event.target;
+      const files = Array.from(input.files || []);
+      if (!files.length) return;
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          if (!config.pages.length) config.pages.push({ type: 'image', src: '' });
+          config.pages.push({ type: 'image', src: e.target.result });
+          renderPages();
+          updateConfig();
+        };
+        reader.readAsDataURL(file);
+      });
+      input.value = '';
+    }
+
+    function handleBgUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById('bgImage').value = e.target.result;
+        config.background.image = e.target.result;
+        updateConfig();
+        updateBgThumb();
+      };
+      reader.readAsDataURL(file);
+      event.target.value = '';
+    }
+
+    function handleMusicUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById('musicUrl').value = e.target.result;
+        config.music.url = e.target.result;
+        updateConfig();
+      };
+      reader.readAsDataURL(file);
+      event.target.value = '';
+    }
+
+    function handleUpload(event, targetField, pageIndex = null) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const dataUrl = e.target.result;
+        if (pageIndex !== null) {
+          config.pages[pageIndex].src = dataUrl;
+          renderPages();
+        } else if (targetField) {
+          document.getElementById(targetField).value = dataUrl;
+          if (targetField === 'coverImage') config.cover.image = dataUrl;
+          if (targetField === 'backImage') config.backCover.image = dataUrl;
+        }
+        updateConfig();
+      };
+      reader.readAsDataURL(file);
+      event.target.value = '';
+    }
+
+    function updateBgThumb() {
+      const bgImage = document.getElementById('bgImage').value || '';
+      const bgThumb = document.getElementById('bgThumb');
+      if (!bgThumb) return;
+      if (bgImage) {
+        bgThumb.innerHTML = `<img src="${bgImage}" style="width:100%;height:100%;object-fit:cover;">`;
+      } else {
+        bgThumb.innerHTML = '<span style="font-size:10px;color:#666;">空</span>';
+      }
+    }
+
+    function updateCoverThumb() {
+      const coverImage = document.getElementById('coverImage').value || '';
+      const coverThumb = document.getElementById('coverThumb');
+      if (!coverThumb) return;
+      if (coverImage) {
+        coverThumb.innerHTML = `<img src="${coverImage}" style="width:100%;height:100%;object-fit:cover;">`;
+      } else {
+        coverThumb.innerHTML = '<span style="font-size:10px;color:#666;">空</span>';
+      }
+    }
+
+    function updateBackThumb() {
+      const backImage = document.getElementById('backImage').value || '';
+      const backThumb = document.getElementById('backThumb');
+      if (!backThumb) return;
+      if (backImage) {
+        backThumb.innerHTML = `<img src="${backImage}" style="width:100%;height:100%;object-fit:cover;">`;
+      } else {
+        backThumb.innerHTML = '<span style="font-size:10px;color:#666;">空</span>';
+      }
+    }
+
+    function updateThumb(pageIndex) {
+      const page = config.pages[pageIndex];
+      const el = document.getElementById(`page-${pageIndex}-thumb`);
+      if (!el) return;
+      if (page && page.src) {
+        el.innerHTML = `<img src="${page.src}" style="width:100%;height:100%;object-fit:cover;">`;
+      } else {
+        el.innerHTML = '<span style="font-size:10px;color:#666;">空</span>';
+      }
+    }
+
+    function setPageType(index, type) {
+      config.pages[index].type = type;
+      renderPages();
+      updateConfig();
+    }
+
+    function setPageSrc(index, src) {
+      config.pages[index].src = src;
+    }
+
+    function movePage(index, dir) {
+      const target = index + dir;
+      if (target < 0 || target >= config.pages.length) return;
+      [config.pages[index], config.pages[target]] = [config.pages[target], config.pages[index]];
+      renderPages();
+      updateConfig();
+    }
+
+    function removePage(index) {
+      if (config.pages.length <= 1) return;
+      config.pages.splice(index, 1);
+      renderPages();
+      updateConfig();
+    }
+
+    async function saveBook() {
+      if (!currentBookId) return;
+      await saveBookConfig(currentBookId, config);
+    }
+
+    // 兼容历史调用
+    function showListView() {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('viewEdit').style.display = 'none';
+      document.getElementById('viewList').style.display = 'block';
+    }
 
   </script>
 </body>
