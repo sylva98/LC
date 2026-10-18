@@ -438,9 +438,15 @@
   <div id="viewList" class="view-list" style="display:none">
     <div class="list-header">
       <h1>我的画册</h1>
-      <div style="display:flex; gap:10px;">
+      <div style="display:flex; gap:10px; align-items:center;">
         <button onclick="window.open('index.html', '_blank')" style="padding:10px 16px; background:#333; border:none; border-radius:6px; color:#aaa; cursor:pointer; font-size:13px;">首页</button>
-        <button onclick="logout()" style="padding:10px 16px; background:#333; border:none; border-radius:6px; color:#aaa; cursor:pointer; font-size:13px;">退出登录</button>
+        <div style="position:relative;">
+          <button onclick="toggleSettingsMenu(event)" style="padding:10px 16px; background:#333; border:none; border-radius:6px; color:#aaa; cursor:pointer; font-size:13px;">设置 ▾</button>
+          <div id="settingsDropdown" style="display:none; position:absolute; top:100%; right:0; margin-top:6px; background:#1a1a2e; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.3); min-width:140px; overflow:hidden; z-index:100;">
+            <div onclick="closeSettingsMenu(); openChangePass();" style="padding:10px 16px; color:#ccc; cursor:pointer; font-size:13px;">修改密码</div>
+            <div onclick="closeSettingsMenu(); logout();" style="padding:10px 16px; color:#ccc; cursor:pointer; font-size:13px; border-top:1px solid #333;">退出登录</div>
+          </div>
+        </div>
         <button class="btn-primary" onclick="newBook()">+ 新建画册</button>
       </div>
     </div>
@@ -455,9 +461,14 @@
     <div class="sidebar-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
       <h1 style="cursor:pointer; margin:0; font-size:18px;" onclick="showListView()" title="返回列表">← 返回</h1>
       <div class="sidebar-actions" style="display:flex; gap:10px; align-items:center;">
-        <button onclick="document.getElementById('importImages').click()" style="padding:8px 14px; font-size:13px;">批量导入图片</button>
+        <div style="position:relative;">
+          <button onclick="toggleImportMenu(event)" style="padding:8px 14px; font-size:13px;">批量导入 ▾</button>
+          <div id="importDropdown" style="display:none; position:absolute; top:100%; right:0; margin-top:6px; background:#1a1a2e; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.3); min-width:150px; overflow:hidden; z-index:200;">
+            <div onclick="closeImportMenu(); document.getElementById('importImages').click();" style="padding:10px 14px; color:#ccc; cursor:pointer; font-size:13px;">批量导入图片</div>
+            <div onclick="closeImportMenu(); openLinksImporter();" style="padding:10px 14px; color:#ccc; cursor:pointer; font-size:13px; border-top:1px solid #333;">批量链接导入</div>
+          </div>
+        </div>
         <input type="file" id="importImages" accept="image/*" multiple style="display:none" onchange="importImages(event)">
-        <button onclick="window.open('index.html', '_blank')" style="padding:8px 14px; font-size:13px;">首页</button>
         <button class="primary" onclick="openPreview()" style="padding:8px 14px; font-size:13px;">预览 ↗</button>
       </div>
     </div>
@@ -544,6 +555,10 @@
       <div class="section">
         <div class="section-title">封面</div>
         <div class="page-card" onmousedown="jumpToPage(0)">
+          <div class="type-toggle">
+            <button id="coverTypeImage" onclick="setCoverType('image')">纯图片</button>
+            <button id="coverTypeHtml" onclick="setCoverType('html')">HTML 文字</button>
+          </div>
           <div id="coverImageWrap">
             <div class="form-row">
               <label>封面图片</label>
@@ -557,6 +572,14 @@
                 </div>
               </div>
               <input type="file" id="coverUpload" accept="image/*" style="display:none" onchange="handleUpload(event, 'coverImage')">
+            </div>
+          </div>
+          <div id="coverHtmlWrap" style="display:none">
+            <div class="form-row">
+              <label>封面 HTML 内容</label>
+              <button id="coverHtmlBtn" style="width:100%; padding:10px; background:#2a2a3c; border:1px solid #444; border-radius:6px; color:#aaa; cursor:pointer; text-align:left; font-size:12px;">
+                点击编辑HTML内容
+              </button>
             </div>
           </div>
         </div>
@@ -659,6 +682,95 @@
     async function logout() {
       await supabase.auth.signOut();
       location.reload();
+    }
+
+    // 设置下拉菜单
+    function toggleSettingsMenu(e) {
+      e.stopPropagation();
+      const m = document.getElementById('settingsDropdown');
+      m.style.display = m.style.display === 'none' ? 'block' : 'none';
+    }
+    function closeSettingsMenu() {
+      document.getElementById('settingsDropdown').style.display = 'none';
+    }
+    document.addEventListener('click', () => closeSettingsMenu());
+
+    // 批量导入下拉菜单
+    function toggleImportMenu(e) {
+      e.stopPropagation();
+      const m = document.getElementById('importDropdown');
+      m.style.display = m.style.display === 'none' ? 'block' : 'none';
+    }
+    function closeImportMenu() {
+      document.getElementById('importDropdown').style.display = 'none';
+    }
+
+    // 批量链接导入
+    function openLinksImporter() {
+      document.getElementById('linksEditor').value = '';
+      document.getElementById('linksModal').style.display = 'flex';
+    }
+    function closeLinksImporter() {
+      document.getElementById('linksModal').style.display = 'none';
+    }
+    function applyLinksImporter() {
+      const text = document.getElementById('linksEditor').value.trim();
+      if (!text) { closeLinksImporter(); return; }
+      const urls = text.split('\n').map(s => s.trim()).filter(Boolean);
+      if (urls.length === 0) { closeLinksImporter(); return; }
+
+      config.cover.type = 'image';
+      config.cover.image = urls[0];
+      config.cover.html = '';
+
+      config.backCover.type = 'image';
+      config.backCover.image = urls[urls.length - 1];
+      config.backCover.html = '';
+
+      if (urls.length > 2) {
+        config.pages = urls.slice(1, -1).map(u => ({ type: 'image', src: u, html: '' }));
+      } else {
+        config.pages = [];
+      }
+
+      render();
+      saveConfig();
+      closeLinksImporter();
+      alert(`已导入 ${urls.length} 个链接（封面1 / 内页${config.pages.length} / 封底1）`);
+    }
+
+    // 修改密码
+    function openChangePass() {
+      document.getElementById('newPass').value = '';
+      document.getElementById('confirmPass').value = '';
+      document.getElementById('passError').style.display = 'none';
+      document.getElementById('changePassModal').style.display = 'flex';
+    }
+    function closeChangePass() {
+      document.getElementById('changePassModal').style.display = 'none';
+    }
+    async function saveChangePass() {
+      const newPass = document.getElementById('newPass').value;
+      const confirmPass = document.getElementById('confirmPass').value;
+      const errEl = document.getElementById('passError');
+      if (!newPass || newPass.length < 6) {
+        errEl.textContent = '新密码至少 6 位';
+        errEl.style.display = 'block';
+        return;
+      }
+      if (newPass !== confirmPass) {
+        errEl.textContent = '两次密码不一致';
+        errEl.style.display = 'block';
+        return;
+      }
+      const { error } = await supabase.auth.updateUser({ password: newPass });
+      if (error) {
+        errEl.textContent = '修改失败：' + error.message;
+        errEl.style.display = 'block';
+        return;
+      }
+      alert('密码修改成功，下次登录请用新密码');
+      closeChangePass();
     }
 
     // 页面加载先检查登录
@@ -820,19 +932,30 @@
       showListView();
     }
 
-    function duplicateBook() {
-      const idx = getBooksIndex();
-      const old = idx.find(b => b.id === currentBookId);
-      if (!old) return;
+    async function duplicateBook() {
+      const { data: old, error: loadErr } = await supabase
+        .from('books')
+        .select('name, config')
+        .eq('id', currentBookId)
+        .single();
+      if (loadErr || !old) {
+        alert('找不到原画册: ' + (loadErr?.message || ''));
+        return;
+      }
       const name = prompt('复制为：', old.name + ' 副本');
       if (!name) return;
-      const id = 'book_' + Date.now();
-      const oldCfg = loadBookConfig(currentBookId);
-      saveBookConfig(id, JSON.parse(JSON.stringify(oldCfg)));
-      idx.push({ id, name, updatedAt: new Date().toISOString() });
-      saveBooksIndex(idx);
-      renderBookSelector();
-      switchBook(id);
+      const { data: newBook, error } = await supabase
+        .from('books')
+        .insert({ name, config: old.config })
+        .select()
+        .single();
+      if (error) {
+        alert('复制失败: ' + error.message);
+        return;
+      }
+      currentBookId = newBook.id;
+      config = JSON.parse(JSON.stringify(old.config));
+      render();
       showEditView();
     }
 
@@ -871,6 +994,7 @@
 
       // 封面
       document.getElementById('coverImage').value = config.cover.image;
+      setCoverType(config.cover.type || 'image', false);
 
       // 内页
       renderPages();
@@ -884,6 +1008,12 @@
       updateCoverThumb();
       updateBackThumb();
 
+      // 绑定封面 HTML 按钮
+      const coverBtn = document.getElementById('coverHtmlBtn');
+      if (coverBtn) {
+        coverBtn.onclick = () => openCoverHtmlEditor();
+        coverBtn.textContent = config.cover.html ? '已编辑，点击修改' : '点击编辑HTML内容';
+      }
       // 绑定封底 HTML 按钮
       const backBtn = document.getElementById('backHtmlBtn');
       if (backBtn) {
@@ -989,12 +1119,17 @@
     }
 
     // HTML 弹窗编辑
-    let editingType = ''; // 'page' | 'back'
+    let editingType = ''; // 'cover' | 'page' | 'back'
     let editingPageIdx = null;
     function openHtmlEditor(idx) {
       editingType = 'page';
       editingPageIdx = idx;
       document.getElementById('htmlEditor').value = config.pages[idx].html || '';
+      document.getElementById('htmlModal').style.display = 'flex';
+    }
+    function openCoverHtmlEditor() {
+      editingType = 'cover';
+      document.getElementById('htmlEditor').value = config.cover.html || '';
       document.getElementById('htmlModal').style.display = 'flex';
     }
     function openBackHtmlEditor() {
@@ -1011,8 +1146,11 @@
       const val = document.getElementById('htmlEditor').value;
       if (editingType === 'page') {
         config.pages[editingPageIdx].html = val;
-        // 更新按钮文字
         const btn = document.getElementById(`page-${editingPageIdx}-htmlBtn`);
+        if (btn) btn.textContent = val ? '已编辑，点击修改' : '点击编辑HTML内容';
+      } else if (editingType === 'cover') {
+        config.cover.html = val;
+        const btn = document.getElementById('coverHtmlBtn');
         if (btn) btn.textContent = val ? '已编辑，点击修改' : '点击编辑HTML内容';
       } else if (editingType === 'back') {
         config.backCover.html = val;
@@ -1132,9 +1270,12 @@
             .getPublicUrl(fileName);
 
           // 填入对应位置
-          if (inputId) {
-            // 封面/封底
+          if (inputId === 'coverImage') {
             document.getElementById(inputId).value = publicUrl;
+            updateCoverThumb();
+          } else if (inputId === 'backImage') {
+            document.getElementById(inputId).value = publicUrl;
+            updateBackThumb();
           } else if (pageIdx !== null && pageIdx !== undefined) {
             // 内页：更新 config 并重新渲染
             config.pages[pageIdx].src = publicUrl;
@@ -1144,9 +1285,9 @@
               const input = wrap.querySelector('input[type="text"]');
               if (input) input.value = publicUrl;
             }
+            updateThumb(pageIdx);
           }
           updateConfig();
-          alert('上传完成！');
         };
         img.src = e.target.result;
       };
@@ -1183,14 +1324,13 @@
 
       document.getElementById('musicUrl').value = publicUrl;
       updateConfig();
-      alert('音乐上传完成！');
       event.target.value = '';
     }
 
     // ==========================================
     //  背景图片上传
     // ==========================================
-    function handleBgUpload(event) {
+    async function handleBgUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
       if (file.size > 10 * 1024 * 1024) {
@@ -1201,8 +1341,8 @@
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
-        img.onload = () => {
-          // 背景图可以大一点，最大宽度 1920
+        img.onload = async () => {
+          // 背景图最大宽度 1920
           const maxW = 1920;
           let w = img.width, h = img.height;
           if (w > maxW) {
@@ -1213,8 +1353,21 @@
           canvas.width = w;
           canvas.height = h;
           canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-          document.getElementById('bgImage').value = dataUrl;
+          const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
+
+          const fileName = `${currentBookId}/bg_${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`;
+          const { data, error } = await supabase.storage
+            .from('book-images')
+            .upload(fileName, blob, { contentType: 'image/jpeg' });
+          if (error) {
+            alert('背景图上传失败：' + error.message);
+            return;
+          }
+          const { data: { publicUrl } } = supabase.storage
+            .from('book-images')
+            .getPublicUrl(fileName);
+          document.getElementById('bgImage').value = publicUrl;
+          updateBgThumb();
           updateConfig();
         };
         img.src = e.target.result;
@@ -1269,33 +1422,8 @@
     }
 
     // ==========================================
-    //  导出 / 导入 / 预览
+    //  批量导入 / 预览
     // ==========================================
-    function exportConfig() {
-      updateConfig();
-      const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'book-config.json';
-      a.click();
-    }
-
-    // 导出全部配置（部署用）
-    function exportAllConfig() {
-      const booksIndex = JSON.parse(localStorage.getItem('booksIndex') || '[]');
-      const allData = { booksIndex: {}, books: {} };
-      booksIndex.forEach(book => {
-        allData.booksIndex[book.id] = book;
-        allData.books[book.id] = JSON.parse(localStorage.getItem('bookConfig_' + book.id) || '{}');
-      });
-      const jsContent = '// 自动生成的配置文件，部署到服务器后所有人共享\nwindow.SITE_CONFIG = ' + JSON.stringify(allData, null, 2) + ';';
-      const blob = new Blob([jsContent], { type: 'text/javascript' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'config-data.js';
-      a.click();
-    }
-
     async function importImages(event) {
       const files = Array.from(event.target.files).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
       if (files.length === 0) return;
@@ -1443,21 +1571,34 @@
           </div>
           <div class="book-actions">
             <button onclick="editBook('${book.id}')">编辑</button>
-            <button class="danger" onclick="deleteBook('${book.id}')">删除</button>
+            <button onclick="duplicateBookFromList('${book.id}')">复制</button>
+            <button class="danger" onclick="deleteBookFromList('${book.id}')">删除</button>
           </div>
         `;
         grid.appendChild(card);
       });
     }
 
-    function renameBook(bookId) {
-      const idx = getBooksIndex();
-      const book = idx.find(b => b.id === bookId);
-      if (!book) return;
+    async function renameBook(bookId) {
+      const { data: book, error: loadErr } = await supabase
+        .from('books')
+        .select('name')
+        .eq('id', bookId)
+        .single();
+      if (loadErr || !book) {
+        alert('找不到画册: ' + (loadErr?.message || ''));
+        return;
+      }
       const name = prompt('画册名称：', book.name);
       if (!name || name === book.name) return;
-      book.name = name;
-      saveBooksIndex(idx);
+      const { error } = await supabase
+        .from('books')
+        .update({ name, updated_at: new Date().toISOString() })
+        .eq('id', bookId);
+      if (error) {
+        alert('改名失败: ' + error.message);
+        return;
+      }
       renderBooksGrid();
     }
 
@@ -1495,10 +1636,7 @@
   <div style="background:#1a1a2e; border-radius:12px; padding:24px; width:90%; max-width:360px;">
     <h3 style="margin:0 0 20px; color:#eee; font-size:16px; text-align:center;">修改密码</h3>
     <div style="margin-bottom:12px;">
-      <input type="text" id="newUser" placeholder="新账号" style="width:100%; padding:10px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#fff; font-size:14px; box-sizing:border-box;">
-    </div>
-    <div style="margin-bottom:12px;">
-      <input type="password" id="newPass" placeholder="新密码" style="width:100%; padding:10px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#fff; font-size:14px; box-sizing:border-box;">
+      <input type="password" id="newPass" placeholder="新密码（至少6位）" style="width:100%; padding:10px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#fff; font-size:14px; box-sizing:border-box;">
     </div>
     <div style="margin-bottom:20px;">
       <input type="password" id="confirmPass" placeholder="确认新密码" style="width:100%; padding:10px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#fff; font-size:14px; box-sizing:border-box;">
@@ -1508,6 +1646,19 @@
       <button onclick="saveChangePass()" style="flex:1; padding:10px; background:#6c5ce7; border:none; border-radius:6px; color:#fff; cursor:pointer;">保存</button>
     </div>
     <div id="passError" style="color:#e74c3c; font-size:12px; text-align:center; margin-top:10px; display:none;">两次密码不一致</div>
+  </div>
+</div>
+
+<!-- 批量链接导入弹窗 -->
+<div id="linksModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center;">
+  <div style="background:#1a1a2e; border-radius:12px; padding:24px; width:90%; max-width:600px; max-height:80vh; display:flex; flex-direction:column;">
+    <h3 style="margin:0 0 8px; color:#eee; font-size:16px;">批量链接导入</h3>
+    <div style="font-size:12px; color:#888; margin-bottom:12px; line-height:1.5;">一行一个图片链接。第1张作为封面，最后1张作为封底，中间作为内页。留空行自动忽略。</div>
+    <textarea id="linksEditor" placeholder="https://example.com/cover.jpg&#10;https://example.com/page1.jpg&#10;https://example.com/page2.jpg&#10;https://example.com/back.jpg" style="flex:1; min-height:260px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#eee; padding:12px; font-family:monospace; font-size:13px; resize:vertical; outline:none;"></textarea>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+      <button onclick="closeLinksImporter()" style="padding:8px 16px; background:#333; border:none; border-radius:6px; color:#aaa; cursor:pointer;">取消</button>
+      <button onclick="applyLinksImporter()" style="padding:8px 16px; background:#e63946; border:none; border-radius:6px; color:#fff; cursor:pointer;">导入</button>
+    </div>
   </div>
 </div>
 
