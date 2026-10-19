@@ -426,7 +426,13 @@
       return;
     }
 
-    allVisibleBooks = books;
+    // 按当前设备过滤「显示端」设置：移动端只显示 showOn.mobile !== false，PC 同理
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    const deviceKey = isMobile ? 'mobile' : 'pc';
+    allVisibleBooks = books.filter(b => {
+      const showOn = b.config?.showOn || {};
+      return showOn[deviceKey] !== false;
+    });
 
     // 填充分类（桌面下拉 + 移动端汉堡菜单），保留当前选择，分类消失则回退全部
     const prev = filterState.category;
