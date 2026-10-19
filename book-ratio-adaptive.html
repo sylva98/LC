@@ -284,7 +284,7 @@
         if (p.hard) div.setAttribute('data-density', 'hard');
         if (p.type === 'image') {
           div.className += ' page-image-only';
-          div.innerHTML = `<img src="${p.src}" alt="" loading="lazy">`;
+          div.innerHTML = `<img src="${p.src}" alt="">`;
         } else {
           div.className += ' page-html-content';
           div.innerHTML = p.html;
