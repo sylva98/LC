@@ -205,10 +205,11 @@
     let CONFIG, BOOK_RATIO_W, BOOK_RATIO_H, PAGES, currentBookId = null;
 
     function applyBackground() {
-      if (CONFIG.background.type === 'color') {
-        document.body.style.background = CONFIG.background.color;
-      } else if (CONFIG.background.type === 'image' && CONFIG.background.image) {
-        document.body.style.background = `url(${CONFIG.background.image}) center/cover no-repeat`;
+      const bg = CONFIG.background || {};
+      if (bg.type === 'color') {
+        document.body.style.background = bg.color;
+      } else if (bg.type === 'image' && bg.image) {
+        document.body.style.background = `url(${bg.image}) center/cover no-repeat`;
       }
     }
 
@@ -234,7 +235,28 @@
         // 首页图标按钮：config.showIndexIcon 为 false 时隐藏（默认显示）
         const homeBtn = document.getElementById('homeBtn');
         if (homeBtn) homeBtn.style.display = (CONFIG.showIndexIcon === false) ? 'none' : '';
-        initBook();
+        // 等待图片加载完成后再初始化翻页书（慢图床/失败也能先出书框架）
+        waitBookImages(() => {
+          initBook();
+          const l = document.getElementById('loading');
+          if (l) l.style.display = 'none';
+          // 从 URL 参数读要跳转的页码
+          const params = new URLSearchParams(window.location.search);
+          const goTo = parseInt(params.get('page'));
+          if (!isNaN(goTo) && pageFlip) {
+            setTimeout(() => {
+              let cur = pageFlip.getCurrentPageIndex();
+              while (cur > 0) {
+                pageFlip.flipPrev('top');
+                cur--;
+              }
+              for (let i = 0; i < goTo; i++) {
+                pageFlip.flipNext('top');
+              }
+              updateNum();
+            }, 300);
+          }
+        });
 
         // 初始化背景音乐
         const music = CONFIG.music || {};
@@ -246,24 +268,11 @@
         }
         window.musicStarted = false;
       } finally {
-        document.getElementById('loading').style.display = 'none';
-      }
-
-      // 从 URL 参数读要跳转的页码
-      const params = new URLSearchParams(window.location.search);
-      const goTo = parseInt(params.get('page'));
-      if (!isNaN(goTo) && pageFlip) {
+        // 兜底：无论成功与否，最多 10 秒隐藏 loading（正常路径在图片加载后已更早隐藏）
         setTimeout(() => {
-          let cur = pageFlip.getCurrentPageIndex();
-          while (cur > 0) {
-            pageFlip.flipPrev('top');
-            cur--;
-          }
-          for (let i = 0; i < goTo; i++) {
-            pageFlip.flipNext('top');
-          }
-          updateNum();
-        }, 300);
+          const l = document.getElementById('loading');
+          if (l) l.style.display = 'none';
+        }, 10000);
       }
     }
 
@@ -290,6 +299,25 @@
           div.innerHTML = p.html;
         }
         bookEl.appendChild(div);
+      });
+      // 收集页面图片，供「图片加载完成后再初始化翻页书」使用
+      window.__bookImgs = Array.from(bookEl.querySelectorAll('img'));
+    }
+
+    // 等待所有页面图片加载完成（成功或失败都放行），避免慢图床导致书页空白
+    function waitBookImages(cb) {
+      const imgs = window.__bookImgs || [];
+      if (!imgs.length) { cb(); return; }
+      let pending = imgs.length;
+      const done = () => {
+        if (--pending <= 0) cb();
+      };
+      imgs.forEach(img => {
+        if (img.complete) done();
+        else {
+          img.addEventListener('load', done);
+          img.addEventListener('error', done);
+        }
       });
     }
 
@@ -475,25 +503,6 @@
         const ok = await copyText(location.origin + '/book-ratio-adaptive.html?book=' + currentBookId);
         showToast(ok ? '短链接生成失败，已复制完整链接' : '复制失败，请手动复制');
       }
-    }
-
-    applyBackground();
-    initBook();
-
-    const params = new URLSearchParams(window.location.search);
-    const goTo = parseInt(params.get('page'));
-    if (!isNaN(goTo) && pageFlip) {
-      setTimeout(() => {
-        let cur = pageFlip.getCurrentPageIndex();
-        while (cur > 0) {
-          pageFlip.flipPrev('top');
-          cur--;
-        }
-        for (let i = 0; i < goTo; i++) {
-          pageFlip.flipNext('top');
-        }
-        updateNum();
-      }, 300);
     }
 
     let resizeTimer;
