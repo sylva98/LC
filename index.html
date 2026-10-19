@@ -130,7 +130,7 @@
     .gallery { padding: 0 24px 60px; grid-template-columns: 1fr; gap: 32px; }
   }
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+  <script src="supabase.min.js"></script>
   <script>
     const SUPABASE_URL = 'https://izspqexefmggllhldfty.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_kGwGiZSKXZkIDtvnGcDCSA_9Gnin7sk';
@@ -169,7 +169,7 @@
     const gallery = document.getElementById('gallery');
     const { data: books, error } = await supabase
       .from('books')
-      .select('*')
+      .select('id,name,updated_at,config')
       .order('updated_at', { ascending: false });
 
     if (error || !books || books.length === 0) {
@@ -236,13 +236,15 @@
     gallery.innerHTML = filtered.map(book => {
       const config = book.config || {};
       const defaultCover = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400"><rect fill="#e5e5e5" width="300" height="400"/><text x="50%" y="50%" font-family="sans-serif" font-size="14" fill="#bbb" text-anchor="middle">暂无封面</text></svg>');
-      const coverSrc = config.cover?.image || config.pages?.[0]?.src || defaultCover;
+      const rawCover = config.cover?.image || config.pages?.[0]?.src || '';
+      // 超大 base64 封面（>300KB）不直接渲染，避免浏览器解码卡顿
+      const coverSrc = (rawCover.startsWith('data:image') && rawCover.length > 300000) ? defaultCover : (rawCover || defaultCover);
       const pageCount = (config.pages || []).length;
 
       return `
         <a href="book-ratio-adaptive.html?book=${book.id}" class="book-card">
           <div class="book-cover">
-            <img src="${coverSrc}" alt="${book.name}">
+            <img src="${coverSrc}" alt="${book.name}" loading="lazy" decoding="async">
           </div>
           <div class="book-info">
             <div class="book-title">${book.name}</div>

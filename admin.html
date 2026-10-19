@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>画册后台管理</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+  <script src="supabase.min.js"></script>
   <script>
     const SUPABASE_URL = 'https://izspqexefmggllhldfty.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_kGwGiZSKXZkIDtvnGcDCSA_9Gnin7sk';
@@ -1532,7 +1532,7 @@
 
       const { data: books, error } = await supabase
         .from('books')
-        .select('*')
+        .select('id,name,updated_at,config')
         .order('updated_at', { ascending: false });
 
       if (error) {
@@ -1549,8 +1549,11 @@
       books.forEach(book => {
         const cfg = book.config || {};
         let coverHtml = '<div class="book-cover-placeholder">📖</div>';
-        if (cfg.cover?.image) {
-          coverHtml = `<img src="${cfg.cover.image}" alt="">`;
+        const coverSrc = cfg.cover?.image || '';
+        // 超大 base64 封面（>300KB）不直接渲染，避免浏览器解码卡顿
+        const isHugeBase64 = coverSrc.startsWith('data:image') && coverSrc.length > 300000;
+        if (coverSrc && !isHugeBase64) {
+          coverHtml = `<img src="${coverSrc}" alt="" loading="lazy" decoding="async">`;
         }
         const d = new Date(book.updated_at);
         const timeStr = `${d.getMonth()+1}月${d.getDate()}日`;
@@ -1616,7 +1619,6 @@
     //  初始化
     // ==========================================
     config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-    checkLogin();
   </script>
 
 <!-- HTML编辑弹窗 -->
