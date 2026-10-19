@@ -7,7 +7,7 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
-    height: 100%;
+    min-height: 100%;
     background: #fafafa;
     font-family: "Helvetica Neue", "PingFang SC", -apple-system, sans-serif;
     color: #1a1a1a;
@@ -23,7 +23,9 @@
     justify-content: space-between;
     align-items: center;
     z-index: 100;
-    background: linear-gradient(to bottom, rgba(250,250,250,0.95), transparent);
+    background: rgba(250, 250, 250, 0.8);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
   }
   .logo {
     font-size: 14px;
@@ -42,8 +44,8 @@
 
   /* Hero 区域 */
   .hero {
-    padding: 140px 48px 80px;
-    max-width: 1400px;
+    padding: 140px clamp(16px, 4vw, 72px) 80px;
+    width: 100%;
     margin: 0 auto;
   }
   .hero h1 {
@@ -65,14 +67,128 @@
     font-weight: 300;
   }
 
+  /* 筛选行 */
+  .filter-row {
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 4vw, 72px) 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    position: sticky;
+    top: 82px; /* 吸在悬浮 header 下方 */
+    z-index: 90;
+    background: rgba(250, 250, 250, 0.95);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+  }
+  .cselect { position: relative; }
+  .cselect-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 34px;
+    padding: 0 12px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    color: #333;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .cselect-btn:hover { border-color: #ccc; }
+  .cselect-btn:focus-within { border-color: #1a1a1a; box-shadow: 0 0 0 2px rgba(26, 26, 26, 0.08); }
+  .cselect-arrow { flex-shrink: 0; }
+  .cselect-panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 100%;
+    display: none;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    z-index: 300;
+    overflow: hidden;
+    padding: 4px 0;
+  }
+  .cselect-option {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .cselect-option:hover { background: #f5f5f5; color: #1a1a1a; }
+  .filter-search { display: flex; }
+  .filter-search input[type="text"] {
+    width: 160px;
+    height: 34px;
+    padding: 0 10px;
+    padding-right: 32px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px 0 0 6px;
+    border-right: none;
+    color: #333;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .filter-search input[type="text"]:focus { border-color: #1a1a1a; box-shadow: 0 0 0 2px rgba(26, 26, 26, 0.08); }
+  .filter-search .clear-keyword {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    line-height: 1;
+    display: none;
+  }
+  .filter-search .clear-keyword:hover { color: #333; }
+  .filter-search button {
+    height: 34px;
+    padding: 0 14px;
+    background: #1a1a1a;
+    border: none;
+    border-radius: 0 6px 6px 0;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .filter-search button:hover { background: #333; }
+  .filter-count {
+    margin-left: auto;
+    font-size: 12px;
+    color: #aaa;
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+  }
+
+  /* 移动端筛选区块与汉堡菜单（桌面默认隐藏） */
+  .mobile-filter { display: none; }
+  #mobileMenuBtn { display: none; }
+
   /* 画册网格 */
   .gallery {
-    max-width: 1400px;
+    width: 100%;
     margin: 0 auto;
-    padding: 0 48px 80px;
+    padding: 24px clamp(16px, 4vw, 72px) 80px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 40px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: clamp(16px, 2vw, 28px);
   }
 
   .book-card {
@@ -80,16 +196,19 @@
     text-decoration: none;
     color: inherit;
     display: block;
-    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s;
   }
-  .book-card:hover { transform: translateY(-4px); }
+  .book-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1); }
 
   .book-cover {
     aspect-ratio: 3/4;
     background: #e5e5e5;
     overflow: hidden;
     position: relative;
-    margin-bottom: 16px;
+    border-radius: 12px 12px 0 0;
+    margin-bottom: 0;
   }
   .book-cover img {
     width: 100%;
@@ -99,10 +218,26 @@
   }
   .book-card:hover .book-cover img { transform: scale(1.03); }
 
+  /* 精选画册角标（黑白极简风格） */
+  .cover-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.78);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 20px;
+    z-index: 2;
+    letter-spacing: 0.05em;
+  }
+
   .book-info {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
+    padding: 12px;
   }
   .book-title {
     font-size: 15px;
@@ -125,9 +260,86 @@
   }
 
   @media (max-width: 768px) {
-    header { padding: 20px 24px; }
-    .hero { padding: 100px 24px 40px; }
-    .gallery { padding: 0 24px 60px; grid-template-columns: 1fr; gap: 32px; }
+    header { height: 57px; padding: 0 24px; }
+    .hero { padding: 100px 24px 36px; }
+    /* 移动端：隐藏桌面下拉筛选行，切换为新版布局 */
+    .filter-row { display: none; }
+    .mobile-filter {
+      display: block;
+      padding: 0 24px 12px;
+    position: sticky;
+    top: 57px; /* 与移动端悬浮 header 底边贴合 */
+    z-index: 90;
+    background: rgba(250, 250, 250, 0.95);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    }
+    #mobileMenuBtn { display: inline-flex; }
+    /* iOS 风格分段控件 */
+    .seg {
+      display: flex;
+      background: #f2f2f2;
+      border-radius: 10px;
+      padding: 4px;
+      margin-top: 16px;
+      gap: 4px;
+    }
+    .seg-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 9px 0;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #888;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .seg-btn.active {
+      background: #fff;
+      color: #1a1a1a;
+      font-weight: 600;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    }
+    /* 搜索栏：灰底圆角 + 放大镜图标 */
+    .filter-search {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+    .filter-search input[type="text"] {
+      width: 100%;
+      flex: none;
+      height: 46px;
+      padding: 0 40px 0 40px;
+      background: #ececee;
+      border: none;
+      border-radius: 12px 0 0 12px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.5' y2='16.5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: left 14px center;
+      font-size: 14px;
+      color: #1a1a1a;
+    }
+    .filter-search input[type="text"]:focus {
+      background-color: #e3e3e6;
+      box-shadow: none;
+    }
+    .filter-search button {
+      height: 46px;
+      padding: 0 20px;
+      border: none;
+      background: #1a1a1a;
+      color: #fff;
+      border-radius: 0 12px 12px 0;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .gallery { padding: 12px 24px 60px; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  }
+
+  /* 小屏手机：间距与边距收紧 */
+  @media (max-width: 480px) {
+    .gallery { padding: 12px 16px 60px; gap: 14px; }
   }
 </style>
   <script src="supabase.min.js"></script>
@@ -142,16 +354,13 @@
 
 <header>
   <div class="logo">LC Portfolio</div>
-  <div style="display:flex; gap:20px; align-items:center;">
-    <input type="text" id="searchInput" placeholder="搜索画册..." style="padding:6px 12px; border:1px solid #eee; border-radius:20px; font-size:13px; outline:none; width:160px;">
-    <button id="categoryBtn" style="background:none; border:none; font-size:20px; cursor:pointer; padding:4px;">☰</button>
-  </div>
+  <button id="mobileMenuBtn" style="background:none; border:none; font-size:22px; cursor:pointer; padding:4px; color:#1a1a1a;" onclick="toggleMobileMenu(event)" title="分类筛选">☰</button>
 </header>
 
-<!-- 分类下拉菜单 -->
-<div id="categoryDropdown" style="display:none; position:fixed; top:60px; right:24px; background:white; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.12); padding:16px; z-index:100; min-width:180px;">
+<!-- 移动端分类面板 -->
+<div id="mobileCategoryPanel" style="display:none; position:fixed; top:64px; right:12px; background:#fff; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.12); padding:16px; z-index:200; min-width:170px;">
   <div style="font-size:13px; color:#999; margin-bottom:10px;">分类筛选</div>
-  <div id="categoryList" style="display:flex; flex-direction:column; gap:8px;"></div>
+  <div id="mobileCategoryList" style="display:flex; flex-direction:column; gap:8px;"></div>
 </div>
 
 <section class="hero">
@@ -159,11 +368,51 @@
   <p>精选画册合集，翻阅之间，感受光影与色彩的流动。</p>
 </section>
 
+<!-- 移动端筛选（≤768px 显示）：搜索通栏 + 排序标签 -->
+<div class="mobile-filter" id="mobileFilter">
+  <div class="filter-search">
+    <div style="position:relative; flex:1;">
+      <input type="text" id="mobileKeyword" placeholder="搜索">
+      <button class="clear-keyword" id="mobileClearKeyword" onclick="clearMobileKeyword()" title="清空">✕</button>
+    </div>
+    <button onclick="applyMobileFilter()">搜索</button>
+  </div>
+  <div class="seg">
+    <button class="seg-btn active" id="sortTabFeatured" onclick="setMobileSort('featured')">精选画册</button>
+    <button class="seg-btn" id="sortTabLatest" onclick="setMobileSort('latest')">最新发布</button>
+  </div>
+</div>
+
+<div class="filter-row" id="filterRow">
+  <div class="cselect" id="csCategory" title="按分类筛选">
+    <div class="cselect-btn" onclick="toggleCSelect('csCategory', event)">
+      <span class="cselect-label" id="csCategoryLabel">全部分类</span>
+      <svg class="cselect-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="cselect-panel" id="csCategoryPanel"></div>
+  </div>
+  <div class="cselect" id="csSort" title="排序方式">
+    <div class="cselect-btn" onclick="toggleCSelect('csSort', event)">
+      <span class="cselect-label" id="csSortLabel">精选画册</span>
+      <svg class="cselect-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="cselect-panel" id="csSortPanel"></div>
+  </div>
+  <div class="filter-search">
+    <div style="position:relative;">
+      <input type="text" id="filterKeyword" placeholder="搜索">
+      <button class="clear-keyword" id="clearKeyword" onclick="clearKeyword()" title="清空">✕</button>
+    </div>
+    <button onclick="applyFilter()">搜索</button>
+  </div>
+</div>
+
 <section class="gallery" id="gallery"></section>
 
 <script>
   let allVisibleBooks = [];
-  let currentCategory = '';
+  let allCategories = [];
+  const filterState = { category: '', sort: 'featured', device: '', featured: '', keyword: '' };
 
   async function loadBooks() {
     const gallery = document.getElementById('gallery');
@@ -177,55 +426,48 @@
       return;
     }
 
-    // 判断当前设备是移动端还是PC端
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    allVisibleBooks = books;
 
-    // 过滤：只显示当前设备允许的画册
-    allVisibleBooks = books.filter(book => {
-      const config = book.config || {};
-      const showOn = config.showOn || { mobile: true, pc: true };
-      if (isMobile) return showOn.mobile !== false;
-      return showOn.pc !== false;
-    });
+    // 填充分类（桌面下拉 + 移动端汉堡菜单），保留当前选择，分类消失则回退全部
+    const prev = filterState.category;
+    const cats = [...new Set(books.map(b => (b.config?.category || '')).filter(Boolean))];
+    allCategories = cats;
+    filterState.category = cats.includes(prev) ? prev : '';
+    catSelect.setOptions([{ value: '', label: '全部分类' }].concat(cats.map(c => ({ value: c, label: c }))));
+    const catLabel = document.getElementById('csCategoryLabel');
+    if (catLabel) catLabel.textContent = filterState.category || '全部分类';
+    renderMobileCategories();
 
-    // 收集所有分类
-    const categories = new Set();
-    allVisibleBooks.forEach(book => {
-      const cat = book.config?.category;
-      if (cat) categories.add(cat);
-    });
-    renderCategoryDropdown(categories);
-
-    filterBooks();
-  }
-
-  function renderCategoryDropdown(categories) {
-    const list = document.getElementById('categoryList');
-    let html = `<div style="padding:6px 0; cursor:pointer; color:#333;" onclick="selectCategory('')">全部</div>`;
-    categories.forEach(cat => {
-      html += `<div style="padding:6px 0; cursor:pointer; color:#555;" onclick="selectCategory('${cat}')">${cat}</div>`;
-    });
-    list.innerHTML = html;
-  }
-
-  function selectCategory(cat) {
-    currentCategory = cat;
-    document.getElementById('categoryDropdown').style.display = 'none';
     filterBooks();
   }
 
   function filterBooks() {
     const gallery = document.getElementById('gallery');
-    const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
 
-    let filtered = allVisibleBooks;
-    // 分类筛选
-    if (currentCategory) {
-      filtered = filtered.filter(book => book.config?.category === currentCategory);
-    }
-    // 搜索筛选
-    if (keyword) {
-      filtered = filtered.filter(book => book.name.toLowerCase().includes(keyword));
+    // 应用筛选条件（组合生效）
+    let filtered = allVisibleBooks.filter(book => {
+      const cfg = book.config || {};
+      if (filterState.category && cfg.category !== filterState.category) return false;
+      if (filterState.keyword && !(book.name || '').toLowerCase().includes(filterState.keyword.toLowerCase())) return false;
+      return true;
+    });
+
+    // 推荐画册精选顺序（任何视图下显示「精选 N」角标）
+    const featuredList = allVisibleBooks.filter(b => b.config?.featured).sort((a, b) => {
+      const ao = (a.config?.featuredOrder != null) ? a.config.featuredOrder : Infinity;
+      const bo = (b.config?.featuredOrder != null) ? b.config.featuredOrder : Infinity;
+      if (ao !== bo) return ao - bo;
+      return new Date(b.updated_at) - new Date(a.updated_at);
+    });
+
+    // 精选画册视图：只显示已推荐的画册，按 featuredOrder 升序（未设置按更新时间兜底）
+    if (filterState.sort === 'featured') {
+      filtered = filtered.filter(b => b.config?.featured).sort((a, b) => {
+        const ao = (a.config?.featuredOrder != null) ? a.config.featuredOrder : Infinity;
+        const bo = (b.config?.featuredOrder != null) ? b.config.featuredOrder : Infinity;
+        if (ao !== bo) return ao - bo;
+        return new Date(b.updated_at) - new Date(a.updated_at);
+      });
     }
 
     if (filtered.length === 0) {
@@ -240,11 +482,14 @@
       // 超大 base64 封面（>300KB）不直接渲染，避免浏览器解码卡顿
       const coverSrc = (rawCover.startsWith('data:image') && rawCover.length > 300000) ? defaultCover : (rawCover || defaultCover);
       const pageCount = (config.pages || []).length;
+      const isFeaturedBook = !!config.featured;
+      const featuredIdx = isFeaturedBook ? featuredList.findIndex(b => b.id === book.id) + 1 : 0;
 
       return `
         <a href="book-ratio-adaptive.html?book=${book.id}" class="book-card">
           <div class="book-cover">
             <img src="${coverSrc}" alt="${book.name}" loading="lazy" decoding="async">
+            ${isFeaturedBook ? `<span class="cover-badge">精选 ${featuredIdx}</span>` : ''}
           </div>
           <div class="book-info">
             <div class="book-title">${book.name}</div>
@@ -255,21 +500,156 @@
     }).join('');
   }
 
-  // 搜索框输入实时筛选
-  document.getElementById('searchInput').addEventListener('input', filterBooks);
+  // ===== 自定义下拉组件（与后台筛选行一致） =====
+  const cselects = {};
+  function toggleCSelect(id, e) {
+    if (e) e.stopPropagation();
+    Object.keys(cselects).forEach(k => {
+      if (k !== id) cselects[k].panel.style.display = 'none';
+    });
+    const cs = cselects[id];
+    cs.panel.style.display = cs.panel.style.display === 'block' ? 'none' : 'block';
+  }
+  function closeAllCSelects() {
+    Object.keys(cselects).forEach(k => { cselects[k].panel.style.display = 'none'; });
+  }
+  document.addEventListener('click', closeAllCSelects);
 
-  // 分类按钮点击切换下拉
-  document.getElementById('categoryBtn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    const dropdown = document.getElementById('categoryDropdown');
-    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-  });
+  function buildCustomSelect(id, onChange) {
+    const panel = document.getElementById(id + 'Panel');
+    const label = document.getElementById(id + 'Label');
+    cselects[id] = { panel };
+    return {
+      setOptions(list) {
+        panel.innerHTML = '';
+        list.forEach(opt => {
+          const d = document.createElement('div');
+          d.className = 'cselect-option';
+          d.textContent = opt.label;
+          d.onclick = () => {
+            label.textContent = opt.label;
+            panel.style.display = 'none';
+            onChange(opt.value);
+          };
+          panel.appendChild(d);
+        });
+      }
+    };
+  }
 
-  // 点击页面其他地方关闭分类下拉
+  const catSelect = buildCustomSelect('csCategory', v => { filterState.category = v; filterBooks(); });
+  catSelect.setOptions([{ value: '', label: '全部分类' }]);
+  const sortSelect = buildCustomSelect('csSort', v => { filterState.sort = v; filterBooks(); });
+  sortSelect.setOptions([{ value: 'featured', label: '精选画册' }, { value: 'latest', label: '最新发布' }]);
+
+  function applyFilter() {
+    filterState.keyword = (document.getElementById('filterKeyword').value || '').trim();
+    const btn = document.getElementById('clearKeyword');
+    if (btn) btn.style.display = filterState.keyword ? 'block' : 'none';
+    filterBooks();
+  }
+
+  function clearKeyword() {
+    const kw = document.getElementById('filterKeyword');
+    if (kw) kw.value = '';
+    filterState.keyword = '';
+    const btn = document.getElementById('clearKeyword');
+    if (btn) btn.style.display = 'none';
+    filterBooks();
+  }
+
+  // 搜索框：回车触发；手动删空输入时与清空按钮一致，重置关键字并刷新
+  (function bindSearchEvents() {
+    const kw = document.getElementById('filterKeyword');
+    if (!kw) return;
+    kw.addEventListener('keydown', e => {
+      if (e.key === 'Enter') applyFilter();
+    });
+    kw.addEventListener('input', () => {
+      const btn = document.getElementById('clearKeyword');
+      if (btn) btn.style.display = kw.value ? 'block' : 'none';
+      if (kw.value === '') {
+        filterState.keyword = '';
+        filterBooks();
+      }
+    });
+  })();
+
+  // ===== 移动端交互 =====
+  // 汉堡菜单：分类筛选面板
+  function toggleMobileMenu(e) {
+    if (e) e.stopPropagation();
+    const p = document.getElementById('mobileCategoryPanel');
+    p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  }
   document.addEventListener('click', () => {
-    document.getElementById('categoryDropdown').style.display = 'none';
+    const p = document.getElementById('mobileCategoryPanel');
+    if (p) p.style.display = 'none';
   });
 
+  function renderMobileCategories() {
+    const list = document.getElementById('mobileCategoryList');
+    if (!list) return;
+    let html = `<div style="padding:6px 0; cursor:pointer;${filterState.category === '' ? 'color:#1a1a1a;font-weight:600;' : 'color:#555;'}" onclick="selectMobileCategory('')">全部分类</div>`;
+    allCategories.forEach(cat => {
+      html += `<div style="padding:6px 0; cursor:pointer;${filterState.category === cat ? 'color:#1a1a1a;font-weight:600;' : 'color:#555;'}" onclick="selectMobileCategory('${cat}')">${cat}</div>`;
+    });
+    list.innerHTML = html;
+  }
+
+  function selectMobileCategory(cat) {
+    filterState.category = cat;
+    document.getElementById('mobileCategoryPanel').style.display = 'none';
+    renderMobileCategories();
+    filterBooks();
+  }
+
+  // 排序标签
+  function setMobileSort(sort) {
+    filterState.sort = sort;
+    updateMobileSortTabs();
+    filterBooks();
+  }
+  function updateMobileSortTabs() {
+    const f = document.getElementById('sortTabFeatured');
+    const l = document.getElementById('sortTabLatest');
+    if (f) f.classList.toggle('active', filterState.sort === 'featured');
+    if (l) l.classList.toggle('active', filterState.sort === 'latest');
+  }
+
+  // 移动端搜索：回车或按钮触发；✕ 清空；手动删空重置
+  function applyMobileFilter() {
+    const kw = document.getElementById('mobileKeyword');
+    filterState.keyword = (kw.value || '').trim();
+    const btn = document.getElementById('mobileClearKeyword');
+    if (btn) btn.style.display = filterState.keyword ? 'block' : 'none';
+    filterBooks();
+  }
+  function clearMobileKeyword() {
+    const kw = document.getElementById('mobileKeyword');
+    if (kw) kw.value = '';
+    filterState.keyword = '';
+    const btn = document.getElementById('mobileClearKeyword');
+    if (btn) btn.style.display = 'none';
+    filterBooks();
+  }
+  (function bindMobileSearchEvents() {
+    const kw = document.getElementById('mobileKeyword');
+    if (!kw) return;
+    kw.addEventListener('keydown', e => {
+      if (e.key === 'Enter') applyMobileFilter();
+    });
+    kw.addEventListener('input', () => {
+      const btn = document.getElementById('mobileClearKeyword');
+      if (btn) btn.style.display = kw.value ? 'block' : 'none';
+      if (kw.value === '') {
+        filterState.keyword = '';
+        filterBooks();
+      }
+    });
+  })();
+
+  updateMobileSortTabs();
   loadBooks();
 </script>
 

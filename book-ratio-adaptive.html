@@ -67,6 +67,14 @@
     .controls button:active { background: #333; color: #fff; transform: scale(0.95); }
     .page-num { font-size: 12px; color: #999; letter-spacing: 2px; min-width: 50px; text-align: center; }
     .tip { margin-top: 15px; font-size: 11px; color: #aaa; text-align: center; }
+    .toast {
+      position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%);
+      background: rgba(0,0,0,0.75); color: #fff; padding: 10px 20px;
+      border-radius: 20px; font-size: 13px; letter-spacing: 1px;
+      opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 1000;
+      white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis;
+    }
+    .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
@@ -84,14 +92,20 @@
   <div class="page-wrapper">
     <div id="book"></div>
     <div class="controls">
-      <button onclick="window.location.href='index.html'" title="返回首页">⌂</button>
+      <button id="homeBtn" onclick="window.location.href='index.html'" title="返回首页">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </button>
       <button onclick="prevPage()">‹</button>
       <div class="page-num" id="pageNum"></div>
       <button onclick="nextPage()">›</button>
+      <button id="shareBtn" onclick="shareBook()" title="分享画册">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      </button>
     </div>
   </div>
+  <div id="toast" class="toast"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+  <script src="supabase.min.js"></script>
   <script>
     const SUPABASE_URL = 'https://izspqexefmggllhldfty.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_kGwGiZSKXZkIDtvnGcDCSA_9Gnin7sk';
@@ -119,7 +133,36 @@
     async function loadConfig() {
       const params = new URLSearchParams(window.location.search);
       const bookId = params.get('book');
+      const shortCode = params.get('s');
+      currentBookId = bookId || null;
       try {
+        // 短链接：/s/<8位短码>，按 config.shareCode 查
+        if (shortCode) {
+          const { data, error } = await supabase
+            .from('books')
+            .select('id, name, config')
+            .eq('config->>shareCode', shortCode)
+            .maybeSingle();
+          if (!error && data && data.config) {
+            currentBookId = data.id;
+            document.title = data.name || '画册';
+            return data.config;
+          }
+          // 兼容旧版短链接 /s/<UUID>：短码查不到且形如 UUID 时，按完整 id 查
+          if (shortCode.indexOf('-') > 0) {
+            const { data: d2, error: e2 } = await supabase
+              .from('books')
+              .select('id, name, config')
+              .eq('id', shortCode)
+              .maybeSingle();
+            if (!e2 && d2 && d2.config) {
+              currentBookId = d2.id;
+              document.title = d2.name || '画册';
+              return d2.config;
+            }
+          }
+        }
+        // 常规链接：?book=<UUID>
         if (bookId) {
           const { data, error } = await supabase
             .from('books')
@@ -159,7 +202,7 @@
       return pages;
     }
 
-    let CONFIG, BOOK_RATIO_W, BOOK_RATIO_H, PAGES;
+    let CONFIG, BOOK_RATIO_W, BOOK_RATIO_H, PAGES, currentBookId = null;
 
     function applyBackground() {
       if (CONFIG.background.type === 'color') {
@@ -188,6 +231,9 @@
         PAGES = buildPagesFromConfig(CONFIG);
 
         applyBackground();
+        // 首页图标按钮：config.showIndexIcon 为 false 时隐藏（默认显示）
+        const homeBtn = document.getElementById('homeBtn');
+        if (homeBtn) homeBtn.style.display = (CONFIG.showIndexIcon === false) ? 'none' : '';
         initBook();
 
         // 初始化背景音乐
@@ -282,7 +328,7 @@
           showCover: true,
           drawShadow: true,
           flippingTime: 800,
-          usePortrait: size.isMobile,
+          usePortrait: size.isMobile && (BOOK_RATIO_H > BOOK_RATIO_W),
           maxShadowOpacity: 0.5,
           mobileScrollSupport: true
         }
@@ -356,6 +402,79 @@
     }
     function prevPage() {
       pageFlip.flipPrev('bottom');
+    }
+
+    // ==========================================
+    //  分享：生成 8 位短码并复制短链接
+    //  短链接格式：域名/s/<短码>，由 Nginx rewrite 映射到画册页
+    //  短码存于 config.shareCode，首次生成后复用；写库失败降级为完整链接
+    // ==========================================
+    let toastTimer = null;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      if (!t) return;
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+    }
+
+    // 字符集去掉易混淆的 0/o、1/l/i
+    const SHORT_CODE_CHARS = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    function genShortCode(len) {
+      let s = '';
+      for (let i = 0; i < len; i++) {
+        s += SHORT_CODE_CHARS[Math.floor(Math.random() * SHORT_CODE_CHARS.length)];
+      }
+      return s;
+    }
+
+    async function copyText(text) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        return true;
+      } catch(e) {
+        return false;
+      }
+    }
+
+    async function shareBook() {
+      if (!currentBookId) {
+        showToast('画册尚未加载');
+        return;
+      }
+      try {
+        // 已有短码则复用，没有则生成并存库
+        let code = CONFIG && CONFIG.shareCode;
+        if (!code) {
+          code = genShortCode(8);
+          const newConfig = JSON.parse(JSON.stringify(CONFIG));
+          newConfig.shareCode = code;
+          const { error } = await supabase
+            .from('books')
+            .update({ config: newConfig, updated_at: new Date().toISOString() })
+            .eq('id', currentBookId);
+          if (error) throw error;
+          CONFIG.shareCode = code;
+        }
+        const ok = await copyText(location.origin + '/s/' + code);
+        showToast(ok ? '复制链接成功' : '复制失败，请手动复制');
+      } catch(e) {
+        // 短码写入失败：降级复制完整链接
+        const ok = await copyText(location.origin + '/book-ratio-adaptive.html?book=' + currentBookId);
+        showToast(ok ? '短链接生成失败，已复制完整链接' : '复制失败，请手动复制');
+      }
     }
 
     applyBackground();

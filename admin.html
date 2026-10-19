@@ -54,6 +54,110 @@
     }
     .list-header .btn-primary:hover { background: #d62839; transform: translateY(-1px); }
 
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .filter-row input[type="text"] {
+      padding: 8px 10px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      color: #333;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .filter-row input[type="text"]:focus {
+      border-color: #e63946;
+      box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.12);
+    }
+    .cselect { position: relative; }
+    .cselect-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      color: #333;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .cselect-btn:hover { border-color: #c0c0c0; }
+    .cselect-btn.active,
+    .cselect-btn:focus-within { border-color: #e63946; box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.12); }
+    .cselect-arrow { flex-shrink: 0; }
+    .cselect-panel {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      min-width: 100%;
+      display: none;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+      z-index: 300;
+      overflow: hidden;
+      padding: 4px 0;
+    }
+    .cselect-option {
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #333;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .cselect-option:hover { background: #f5f5f5; color: #e63946; }
+    .filter-search { display: flex; }
+    .filter-search input[type="text"] {
+      width: 180px;
+      border-radius: 6px 0 0 6px;
+      border-right: none;
+      padding-right: 32px;
+    }
+    .filter-search .clear-keyword {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 6px;
+      line-height: 1;
+      display: none;
+    }
+    .filter-search .clear-keyword:hover { color: #333; }
+    .filter-search button {
+      padding: 8px 14px;
+      background: #e63946;
+      border: none;
+      border-radius: 0 6px 6px 0;
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .filter-search button:hover { background: #d62839; }
+    .filter-count {
+      margin-left: auto;
+      font-size: 12px;
+      color: #999;
+      white-space: nowrap;
+    }
+
     .books-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -123,6 +227,43 @@
     }
     .book-actions button:hover { background: #f5f5f5; }
     .book-actions button.danger:hover { background: #e63946; color: #fff; border-color: #e63946; }
+    /* 精选序号角标 */
+    .cover-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(230, 57, 70, 0.92);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 20px;
+      z-index: 2;
+      letter-spacing: 0.05em;
+    }
+    /* 封面上移/下移浮标 */
+    .cover-move {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      gap: 5px;
+      z-index: 2;
+    }
+    .cover-move button {
+      width: 26px;
+      height: 26px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      color: #666;
+      font-size: 13px;
+      line-height: 1;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .cover-move button:hover { background: #e63946; color: #fff; }
 
     /* ===== 编辑视图 ===== */
     .view-edit {
@@ -243,6 +384,37 @@
       border-radius: 4px;
       background: #2a2a3c;
       cursor: pointer;
+    }
+
+    /* 自定义勾选框：带对勾的图标样式 */
+    input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1px solid #555;
+      border-radius: 4px;
+      background: #2a2a3c;
+      cursor: pointer;
+      position: relative;
+      vertical-align: middle;
+      margin: 0;
+      flex-shrink: 0;
+    }
+    input[type="checkbox"]:checked {
+      background: #6c5ce7;
+      border-color: #6c5ce7;
+    }
+    input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 2px;
+      width: 4px;
+      height: 8px;
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
     }
     .form-row-inline {
       display: flex;
@@ -450,6 +622,44 @@
         <button class="btn-primary" onclick="newBook()">+ 新建画册</button>
       </div>
     </div>
+    <div class="filter-row" id="filterRow">
+      <div class="cselect" id="csCategory" title="按分类筛选">
+        <div class="cselect-btn" onclick="toggleCSelect('csCategory', event)">
+          <span class="cselect-label" id="csCategoryLabel">全部分类</span>
+          <svg class="cselect-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="cselect-panel" id="csCategoryPanel"></div>
+      </div>
+      <div class="cselect" id="csSort" title="排序方式">
+        <div class="cselect-btn" onclick="toggleCSelect('csSort', event)">
+          <span class="cselect-label" id="csSortLabel">最新发布</span>
+          <svg class="cselect-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="cselect-panel" id="csSortPanel"></div>
+      </div>
+      <div class="cselect" id="csDevice" title="显示端筛选">
+        <div class="cselect-btn" onclick="toggleCSelect('csDevice', event)">
+          <span class="cselect-label" id="csDeviceLabel">全部显示端</span>
+          <svg class="cselect-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="cselect-panel" id="csDevicePanel"></div>
+      </div>
+      <div class="cselect" id="csFeatured" title="推荐状态">
+        <div class="cselect-btn" onclick="toggleCSelect('csFeatured', event)">
+          <span class="cselect-label" id="csFeaturedLabel">全部状态</span>
+          <svg class="cselect-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="cselect-panel" id="csFeaturedPanel"></div>
+      </div>
+      <div class="filter-search">
+        <div style="position:relative;">
+          <input type="text" id="filterKeyword" placeholder="搜索画册名称">
+          <button class="clear-keyword" id="clearKeyword" onclick="clearKeyword()" title="清空">✕</button>
+        </div>
+        <button onclick="applyFilter()">搜索</button>
+      </div>
+      <span class="filter-count" id="filterCount">共 0 本</span>
+    </div>
     <div class="books-grid" id="booksGrid"></div>
   </div>
 
@@ -480,19 +690,19 @@
         <div class="section-title">全局设置</div>
 
         <div class="form-row">
-          <label>背景颜色</label>
-          <input type="color" id="bgColor" onchange="updateConfig()">
-        </div>
-
-        <div class="form-row">
-          <label>背景图片（可选）</label>
-          <div style="display:flex; gap:10px; align-items:flex-start;">
-            <div id="bgThumb" style="width:60px; height:60px; border-radius:4px; overflow:hidden; background:#2a2a3c; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <label>背景</label>
+          <div style="display:flex; gap:12px; margin-top:2px;">
+            <div id="bgThumb" onclick="document.getElementById('bgUpload').click()" title="点击上传背景图" style="width:64px; height:80px; border-radius:4px; overflow:hidden; background:#2a2a3c; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer; border:1px solid #3a3a4c;">
               <span style="font-size:10px; color:#666;">空</span>
             </div>
-            <div style="flex:1; display:flex; gap:6px;">
-              <input type="text" id="bgImage" placeholder="粘贴链接或上传" oninput="updateConfig(); updateBgThumb();" style="flex:1; margin:0;">
-              <button class="upload-btn" style="margin:0; width:auto; padding:0 10px; flex-shrink:0;" onclick="document.getElementById('bgUpload').click()">📁</button>
+            <div style="flex:1; display:flex; flex-direction:column; gap:10px;">
+              <div style="display:flex; gap:6px; align-items:center;">
+                <input type="text" id="bgImage" placeholder="粘贴链接或上传" oninput="updateConfig(); updateBgThumb();" style="flex:1; margin:0;">
+                <button class="upload-btn" style="margin:0; width:auto; padding:0 10px; flex-shrink:0; height:36px; display:flex; align-items:center; justify-content:center;" onclick="document.getElementById('bgUpload').click()">📁</button>
+              </div>
+              <div>
+                <input type="color" id="bgColor" onchange="updateConfig()" style="width:100%; height:32px;">
+              </div>
             </div>
           </div>
           <input type="file" id="bgUpload" accept="image/*" style="display:none" onchange="handleBgUpload(event)">
@@ -512,19 +722,30 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group">
-            <label style="display:flex; align-items:center; gap:16px; margin:0;">
-              显示端
-              <label style="display:flex; align-items:center; gap:6px; margin:0; font-weight:normal;">
-                <input type="checkbox" id="showMobile" onchange="updateConfig()">
-                移动端
-              </label>
-              <label style="display:flex; align-items:center; gap:6px; margin:0; font-weight:normal;">
-                <input type="checkbox" id="showPc" onchange="updateConfig()">
-                PC端
-              </label>
+          <label>显示设置</label>
+          <div style="display:flex; align-items:center; gap:24px; margin-top:2px;">
+            <label style="display:flex; align-items:center; gap:6px; margin:0; font-weight:normal;">
+              <input type="checkbox" id="showMobile" onchange="updateConfig()">
+              移动端
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; margin:0; font-weight:normal;">
+              <input type="checkbox" id="showPc" onchange="updateConfig()">
+              PC端
             </label>
           </div>
+          <div style="display:flex; align-items:center; gap:24px; margin-top:14px;">
+            <label style="display:flex; align-items:center; gap:6px; margin:0; font-weight:normal;">
+              <input type="checkbox" id="bookFeatured" onchange="updateConfig()">
+              是否推荐
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; margin:0; font-weight:normal;">
+              <input type="checkbox" id="showIndexIcon" onchange="updateConfig()" checked>
+              显示首页图标
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
           <div class="form-group">
             <label>分类（可选，相同分类自动分组）</label>
             <input type="text" id="bookCategory" list="categoryList" placeholder="输入分类名称，如：油画、摄影" oninput="updateConfig()">
@@ -536,7 +757,7 @@
           <label>背景音乐（可选）</label>
           <div style="display:flex; gap:6px;">
             <input type="text" id="musicUrl" placeholder="粘贴mp3链接或上传" oninput="updateConfig()" style="flex:1; margin:0;">
-            <button class="upload-btn" style="margin:0; width:auto; padding:0 10px; flex-shrink:0;" onclick="document.getElementById('musicUpload').click()">📁</button>
+            <button class="upload-btn" style="margin:0; width:auto; padding:0 10px; flex-shrink:0; height:36px; display:flex; align-items:center; justify-content:center;" onclick="document.getElementById('musicUpload').click()">📁</button>
           </div>
           <input type="file" id="musicUpload" accept="audio/*" style="display:none" onchange="handleMusicUpload(event)">
           <div style="display:flex; gap:16px; margin-top:10px; align-items:center;">
@@ -704,6 +925,29 @@
     function closeImportMenu() {
       document.getElementById('importDropdown').style.display = 'none';
     }
+    // 点击页面其他地方关闭批量导入下拉
+    document.addEventListener('click', () => closeImportMenu());
+
+    // 预览区是 iframe：内部点击事件不会冒泡到父页面，
+    // 需单独在 iframe 文档上绑定，点击预览区时也收起两个下拉菜单
+    function bindPreviewClose() {
+      const frame = document.getElementById('previewFrame');
+      if (!frame) return;
+      try {
+        const doc = frame.contentDocument;
+        if (doc) {
+          doc.addEventListener('click', () => {
+            closeImportMenu();
+            closeSettingsMenu();
+          });
+        }
+      } catch(e) {}
+    }
+    const previewFrameEl = document.getElementById('previewFrame');
+    if (previewFrameEl) {
+      previewFrameEl.addEventListener('load', bindPreviewClose);
+    }
+    bindPreviewClose();
 
     // 批量链接导入
     function openLinksImporter() {
@@ -713,7 +957,7 @@
     function closeLinksImporter() {
       document.getElementById('linksModal').style.display = 'none';
     }
-    function applyLinksImporter() {
+    async function applyLinksImporter() {
       const text = document.getElementById('linksEditor').value.trim();
       if (!text) { closeLinksImporter(); return; }
       const urls = text.split('\n').map(s => s.trim()).filter(Boolean);
@@ -734,7 +978,7 @@
       }
 
       render();
-      saveConfig();
+      await saveConfig();
       closeLinksImporter();
       alert(`已导入 ${urls.length} 个链接（封面1 / 内页${config.pages.length} / 封底1）`);
     }
@@ -807,6 +1051,13 @@
     let config = null;
     let currentBookId = null;
     let currentEditingPage = 0; // 当前编辑的页码（0=封面，最后一页=封底）
+
+    // 列表页筛选状态（device 默认空 = 全部显示端）
+    const filterState = { category: '', sort: 'latest', device: '', featured: '', keyword: '' };
+    // 精选排序下的推荐画册列表（供列表页 ↑↓ 排序）
+    let featuredSortedList = [];
+    // 当前过滤排序后的列表（用于本地即时排序，乐观更新）
+    let currentList = [];
 
     // ==========================================
     //  多本画册管理
@@ -966,9 +1217,14 @@
       return loadBookConfig(currentBookId);
     }
 
-    function saveConfig() {
-      saveBookConfig(currentBookId, config);
-      // 直接刷新预览框，加时间戳强制刷新
+    async function saveConfig() {
+      try {
+        await saveBookConfig(currentBookId, config);
+      } catch(e) {
+        console.warn('保存失败: ', e && e.message);
+        return; // 保存失败不刷新预览，避免误导
+      }
+      // 等写入完成后再刷新预览，避免 iframe 读到旧数据导致不同步
       const frame = document.getElementById('previewFrame');
       if (frame) {
         frame.src = `book-ratio-adaptive.html?book=${currentBookId}&page=${currentEditingPage || 0}&t=${Date.now()}`;
@@ -986,6 +1242,8 @@
       document.getElementById('ratioH').value = config.bookRatio.h;
       document.getElementById('showMobile').checked = config.showOn?.mobile !== false;
       document.getElementById('showPc').checked = config.showOn?.pc !== false;
+      document.getElementById('bookFeatured').checked = !!config.featured;
+      document.getElementById('showIndexIcon').checked = config.showIndexIcon !== false;
       document.getElementById('bookCategory').value = config.category || '';
       document.getElementById('musicUrl').value = config.music?.url || '';
       document.getElementById('musicVolume').value = config.music?.volume || 0.5;
@@ -1051,7 +1309,7 @@
                 </div>
                 <div style="flex:1; display:flex; gap:6px;">
                   <input type="text" value="${page.src || ''}" placeholder="粘贴链接或上传" oninput="setPageSrc(${idx}, this.value); updateThumb(${idx});" style="flex:1; margin:0;">
-                  <button class="upload-btn" style="margin:0; width:auto; padding:0 10px; flex-shrink:0;" onclick="document.getElementById('pageUpload-${idx}').click()">📁</button>
+                  <button class="upload-btn" style="margin:0; width:auto; padding:0 10px; flex-shrink:0; height:36px; display:flex; align-items:center; justify-content:center;" onclick="document.getElementById('pageUpload-${idx}').click()">📁</button>
                 </div>
               </div>
               <input type="file" id="pageUpload-${idx}" accept="image/*" style="display:none" onchange="handleUpload(event, null, ${idx})">
@@ -1205,6 +1463,8 @@
         mobile: document.getElementById('showMobile').checked,
         pc: document.getElementById('showPc').checked
       };
+      config.featured = document.getElementById('bookFeatured').checked;
+      config.showIndexIcon = document.getElementById('showIndexIcon').checked;
       config.category = document.getElementById('bookCategory').value.trim();
       config.music = {
         url: document.getElementById('musicUrl').value.trim(),
@@ -1380,7 +1640,7 @@
     function jumpToPage(page) {
       currentEditingPage = page;
       const frame = document.getElementById('previewFrame');
-      frame.src = `book-ratio-adaptive.html?book=${currentBookId}&page=${page}`;
+      frame.src = `book-ratio-adaptive.html?book=${currentBookId}&page=${page}&t=${Date.now()}`;
     }
 
     // 更新内页缩略图
@@ -1494,7 +1754,7 @@
       }
 
       render();
-      saveConfig();
+      await saveConfig();
       alert('导入完成！');
       event.target.value = ''; // 清空 input，允许重复选择
     }
@@ -1542,11 +1802,62 @@
 
       if (!books || books.length === 0) {
         grid.innerHTML = '<div style="color:#666; text-align:center; padding:40px;">暂无画册，点右上角新建</div>';
+        updateFilterCount(0);
+        return;
+      }
+
+      // 填充分类下拉选项（数据每次刷新，保留当前选择，分类消失则回退全部）
+      const prev = filterState.category;
+      const cats = [...new Set(books.map(b => (b.config?.category || '')).filter(Boolean))];
+      filterState.category = cats.includes(prev) ? prev : '';
+      catSelect.setOptions([{ value: '', label: '全部分类' }].concat(cats.map(c => ({ value: c, label: c }))));
+      const catLabel = document.getElementById('csCategoryLabel');
+      if (catLabel) catLabel.textContent = filterState.category || '全部分类';
+
+      // 应用筛选条件（组合生效）
+      let list = books.filter(b => {
+        const cfg = b.config || {};
+        if (filterState.category && cfg.category !== filterState.category) return false;
+        if (filterState.device === 'mobile' && cfg.showOn?.mobile === false) return false;
+        if (filterState.device === 'pc' && cfg.showOn?.pc === false) return false;
+        if (filterState.featured === 'yes' && !cfg.featured) return false;
+        if (filterState.featured === 'no' && cfg.featured) return false;
+        if (filterState.keyword && !(b.name || '').toLowerCase().includes(filterState.keyword.toLowerCase())) return false;
+        return true;
+      });
+
+      // 精选画册视图：只显示已推荐的画册，按 featuredOrder 升序（未设置按更新时间兜底）
+      if (filterState.sort === 'featured') {
+        list = list.filter(b => b.config?.featured).sort((a, b) => {
+          const ao = (a.config?.featuredOrder != null) ? a.config.featuredOrder : Infinity;
+          const bo = (b.config?.featuredOrder != null) ? b.config.featuredOrder : Infinity;
+          if (ao !== bo) return ao - bo;
+          return new Date(b.updated_at) - new Date(a.updated_at);
+        });
+      }
+
+      // 推荐画册精选顺序（任何视图下显示「精选 N」角标；供列表页 ↑↓ 排序）
+      featuredSortedList = books.filter(b => b.config?.featured).sort((a, b) => {
+        const ao = (a.config?.featuredOrder != null) ? a.config.featuredOrder : Infinity;
+        const bo = (b.config?.featuredOrder != null) ? b.config.featuredOrder : Infinity;
+        if (ao !== bo) return ao - bo;
+        return new Date(b.updated_at) - new Date(a.updated_at);
+      });
+
+      updateFilterCount(list.length);
+      currentList = list;
+      renderGrid(list);
+    }
+
+    function renderGrid(list) {
+      const grid = document.getElementById('booksGrid');
+      if (list.length === 0) {
+        grid.innerHTML = '<div style="color:#666; text-align:center; padding:40px;">没有符合条件的画册，试试调整筛选条件</div>';
         return;
       }
 
       grid.innerHTML = '';
-      books.forEach(book => {
+      list.forEach(book => {
         const cfg = book.config || {};
         let coverHtml = '<div class="book-cover-placeholder">📖</div>';
         const coverSrc = cfg.cover?.image || '';
@@ -1566,8 +1877,19 @@
 
         const card = document.createElement('div');
         card.className = 'book-card';
+        const isFeaturedBook = !!cfg.featured;
+        const featuredIdx = isFeaturedBook ? featuredSortedList.findIndex(b => b.id === book.id) + 1 : 0;
         card.innerHTML = `
-          <div class="book-cover" onclick="editBook('${book.id}')">${coverHtml}</div>
+          <div class="book-cover" onclick="editBook('${book.id}')">
+            ${coverHtml}
+            ${isFeaturedBook ? `<div class="cover-badge">精选 ${featuredIdx}</div>` : ''}
+            ${(filterState.sort === 'featured' && isFeaturedBook) ? `
+              <div class="cover-move">
+                <button title="上移" onclick="event.stopPropagation(); moveFeatured('${book.id}', -1)">↑</button>
+                <button title="下移" onclick="event.stopPropagation(); moveFeatured('${book.id}', 1)">↓</button>
+              </div>
+            ` : ''}
+          </div>
           <div class="book-info">
             <div class="book-name" style="cursor:pointer" onclick="renameBook('${book.id}')" title="点击改名">${book.name} ✏️</div>
             <div class="book-meta">更新于 ${timeStr} · ${pageCount} 页 · ${mobileIcon} ${pcIcon}</div>
@@ -1581,6 +1903,122 @@
         grid.appendChild(card);
       });
     }
+
+    function updateFilterCount(n) {
+      const el = document.getElementById('filterCount');
+      if (el) el.textContent = `共 ${n} 本`;
+    }
+
+    // 列表页 ↑↓ 调整精选画册顺序：本地即时换位（乐观更新），后台并行写库，不更新更新时间
+    async function moveFeatured(bookId, dir) {
+      const idx = featuredSortedList.findIndex(b => b.id === bookId);
+      if (idx < 0) return;
+      const target = idx + dir;
+      if (target < 0 || target >= featuredSortedList.length) return;
+
+      // 本地立即交换（秒响应，不等网络）
+      [featuredSortedList[idx], featuredSortedList[target]] = [featuredSortedList[target], featuredSortedList[idx]];
+      const aId = featuredSortedList[idx].id;
+      const bId = featuredSortedList[target].id;
+      const li = currentList.findIndex(b => b.id === aId);
+      const lj = currentList.findIndex(b => b.id === bId);
+      if (li >= 0 && lj >= 0) {
+        [currentList[li], currentList[lj]] = [currentList[lj], currentList[li]];
+      }
+      renderGrid(currentList);
+
+      // 后台并行写库：重新编号所有推荐画册
+      try {
+        await Promise.all(featuredSortedList.map((book, i) => {
+          const cfg = { ...(book.config || {}), featuredOrder: i + 1 };
+          book.config = cfg; // 同步本地数据
+          return supabase.from('books').update({ config: cfg }).eq('id', book.id);
+        }));
+      } catch(e) {
+        console.warn('保存精选顺序失败: ', e && e.message);
+        renderBooksGrid(); // 失败则重新拉取，恢复真实顺序
+      }
+    }
+
+    function applyFilter() {
+      filterState.keyword = (document.getElementById('filterKeyword').value || '').trim();
+      const btn = document.getElementById('clearKeyword');
+      if (btn) btn.style.display = filterState.keyword ? 'block' : 'none';
+      renderBooksGrid();
+    }
+
+    function clearKeyword() {
+      const kw = document.getElementById('filterKeyword');
+      if (kw) kw.value = '';
+      filterState.keyword = '';
+      const btn = document.getElementById('clearKeyword');
+      if (btn) btn.style.display = 'none';
+      renderBooksGrid();
+    }
+
+    // ===== 自定义下拉组件（紧凑面板跟随页面样式，替代系统原生下拉面板） =====
+    const cselects = {};
+    function toggleCSelect(id, e) {
+      if (e) e.stopPropagation();
+      Object.keys(cselects).forEach(k => {
+        if (k !== id) cselects[k].panel.style.display = 'none';
+      });
+      const cs = cselects[id];
+      cs.panel.style.display = cs.panel.style.display === 'block' ? 'none' : 'block';
+    }
+    function closeAllCSelects() {
+      Object.keys(cselects).forEach(k => { cselects[k].panel.style.display = 'none'; });
+    }
+    document.addEventListener('click', closeAllCSelects);
+
+    function buildCustomSelect(id, onChange) {
+      const panel = document.getElementById(id + 'Panel');
+      const label = document.getElementById(id + 'Label');
+      cselects[id] = { panel };
+      return {
+        setOptions(list) {
+          panel.innerHTML = '';
+          list.forEach(opt => {
+            const d = document.createElement('div');
+            d.className = 'cselect-option';
+            d.textContent = opt.label;
+            d.onclick = () => {
+              label.textContent = opt.label;
+              panel.style.display = 'none';
+              onChange(opt.value);
+            };
+            panel.appendChild(d);
+          });
+        }
+      };
+    }
+
+    // 初始化筛选下拉
+    const catSelect = buildCustomSelect('csCategory', v => { filterState.category = v; renderBooksGrid(); });
+    catSelect.setOptions([{ value: '', label: '全部分类' }]);
+    const sortSelect = buildCustomSelect('csSort', v => { filterState.sort = v; renderBooksGrid(); });
+    sortSelect.setOptions([{ value: 'latest', label: '最新发布' }, { value: 'featured', label: '精选画册' }]);
+    const deviceSelect = buildCustomSelect('csDevice', v => { filterState.device = v; renderBooksGrid(); });
+    deviceSelect.setOptions([{ value: '', label: '全部显示端' }, { value: 'mobile', label: '移动端' }, { value: 'pc', label: 'PC端' }]);
+    const featuredSelect = buildCustomSelect('csFeatured', v => { filterState.featured = v; renderBooksGrid(); });
+    featuredSelect.setOptions([{ value: '', label: '全部状态' }, { value: 'yes', label: '已推荐' }, { value: 'no', label: '未推荐' }]);
+
+    // 搜索框事件：按回车或点按钮触发；手动删空输入时重置关键字并刷新
+    (function bindSearchEvents() {
+      const kw = document.getElementById('filterKeyword');
+      if (!kw) return;
+      kw.addEventListener('keydown', e => {
+        if (e.key === 'Enter') applyFilter();
+      });
+      kw.addEventListener('input', () => {
+        const btn = document.getElementById('clearKeyword');
+        if (btn) btn.style.display = kw.value ? 'block' : 'none';
+        if (kw.value === '') {
+          filterState.keyword = '';
+          renderBooksGrid();
+        }
+      });
+    })();
 
     async function renameBook(bookId) {
       const { data: book, error: loadErr } = await supabase
