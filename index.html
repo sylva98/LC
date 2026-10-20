@@ -432,18 +432,18 @@
   let allCategories = [];
   const filterState = { category: '', sort: 'featured', device: '', featured: '', keyword: '' };
 
-  async function loadBooks() {
-    const gallery = document.getElementById('gallery');
-    const { data: books, error } = await supabase
-      .from('books')
-      .select('id,name,updated_at,config')
-      .order('updated_at', { ascending: false });
+  // ===== 会话缓存：返回首页秒开 + 后台静默刷新（有变化才更新，无变化零打扰） =====
+  const BOOKS_CACHE_KEY = 'lc_books_cache_v1';
+  const BOOKS_SIG_KEY = BOOKS_CACHE_KEY + '_sig';
 
-    if (error || !books || books.length === 0) {
-      gallery.innerHTML = '<div class="empty">暂无画册</div>';
-      return;
-    }
+  // 列表签名：任一画册新增/删除/更新时间变化，签名即变
+  function listSignature(books) {
+    return (books || []).map(b => b.id + ':' + (b.updated_at || '')).join('|');
+  }
 
+  // 把查到的 books 应用到页面（设备过滤 + 分类填充 + 渲染）
+  function applyBooks(books) {
+    if (!books || books.length === 0) return;
     // 按当前设备过滤「显示端」设置：移动端只显示 showOn.mobile !== false，PC 同理
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
     const deviceKey = isMobile ? 'mobile' : 'pc';
@@ -463,6 +463,52 @@
     renderMobileCategories();
 
     filterBooks();
+  }
+
+  async function loadBooks() {
+    const gallery = document.getElementById('gallery');
+
+    // 1) 会话缓存优先：返回首页时先用缓存渲染（秒开），后台再查最新
+    let cachedBooks = null;
+    try {
+      const cached = sessionStorage.getItem(BOOKS_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && Array.isArray(parsed.books) && parsed.books.length) {
+          cachedBooks = parsed.books;
+          applyBooks(cachedBooks);
+        }
+      }
+    } catch(e) {}
+
+    // 2) 后台静默查询最新数据
+    const { data: books, error } = await supabase
+      .from('books')
+      .select('id,name,updated_at,config')
+      .order('updated_at', { ascending: false });
+
+    if (error || !books) {
+      return; // 查询失败：保留缓存渲染，静默不打扰
+    }
+    if (books.length === 0) {
+      // 后台确认真的没有画册：清缓存并提示
+      try { sessionStorage.removeItem(BOOKS_CACHE_KEY); sessionStorage.removeItem(BOOKS_SIG_KEY); } catch(e) {}
+      gallery.innerHTML = '<div class="empty">暂无画册</div>';
+      return;
+    }
+
+    // 3) 签名对比：数据没变则保持当前页面（零闪烁），变了才更新缓存 + 重渲染
+    let prevSig = null;
+    try { prevSig = sessionStorage.getItem(BOOKS_SIG_KEY); } catch(e) {}
+    const newSig = listSignature(books);
+    if (cachedBooks && newSig === prevSig) {
+      return;
+    }
+    try {
+      sessionStorage.setItem(BOOKS_CACHE_KEY, JSON.stringify({ books }));
+      sessionStorage.setItem(BOOKS_SIG_KEY, newSig);
+    } catch(e) {}
+    applyBooks(books);
   }
 
   function filterBooks() {
