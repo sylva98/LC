@@ -277,7 +277,9 @@
         // 判断当前设备是否允许访问
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
         const showOn = CONFIG.showOn || { mobile: true, pc: true };
-        const allowed = isMobile ? showOn.mobile !== false : showOn.pc !== false;
+        // 后台预览（?preview=1）跳过显示端门禁：管理员应能看到所有画册
+        const isPreview = new URLSearchParams(window.location.search).get('preview') === '1';
+        const allowed = isPreview || (isMobile ? showOn.mobile !== false : showOn.pc !== false);
 
         if (!allowed) {
           document.getElementById('loading').innerHTML = '<div style="color:#999; font-size:14px;">当前设备无法查看此画册</div>';

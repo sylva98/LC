@@ -1151,7 +1151,7 @@
       render();
       // 刷新预览
       const frame = document.getElementById('previewFrame');
-      frame.src = 'book-ratio-adaptive.html?book=' + bookId;
+      frame.src = 'book-ratio-adaptive.html?preview=1&book=' + bookId;
     }
 
     async function newBook() {
@@ -1170,7 +1170,7 @@
       document.getElementById('viewList').style.display = 'none';
       document.getElementById('viewEdit').style.display = 'flex';
       const frame = document.getElementById('previewFrame');
-      frame.src = 'book-ratio-adaptive.html?book=' + data.id;
+      frame.src = 'book-ratio-adaptive.html?preview=1&book=' + data.id;
     }
 
     async function deleteBook(bookId) {
@@ -1957,7 +1957,7 @@
 
     function openPreview() {
       updateConfig();
-      window.open('book-ratio-adaptive.html?book=' + currentBookId, '_blank');
+      window.open('book-ratio-adaptive.html?preview=1&book=' + currentBookId, '_blank');
     }
 
     // ==========================================
@@ -1975,7 +1975,7 @@
       document.getElementById('viewEdit').style.display = 'flex';
       // 刷新预览 iframe
       const frame = document.getElementById('previewFrame');
-      frame.src = 'book-ratio-adaptive.html?book=' + currentBookId;
+      frame.src = 'book-ratio-adaptive.html?preview=1&book=' + currentBookId;
     }
 
     function editBook(bookId) {
