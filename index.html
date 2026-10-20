@@ -492,7 +492,7 @@
       const featuredIdx = isFeaturedBook ? featuredList.findIndex(b => b.id === book.id) + 1 : 0;
 
       return `
-        <a href="book-ratio-adaptive.html?book=${book.id}" class="book-card">
+        <a href="book-ratio-adaptive.html?book=${book.id}&v=${Date.now()}" class="book-card">
           <div class="book-cover">
             <img src="${coverSrc}" alt="${book.name}" loading="lazy" decoding="async">
             ${isFeaturedBook ? `<span class="cover-badge">精选 ${featuredIdx}</span>` : ''}

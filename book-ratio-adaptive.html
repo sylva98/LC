@@ -309,8 +309,10 @@
       const imgs = window.__bookImgs || [];
       if (!imgs.length) { cb(); return; }
       let pending = imgs.length;
+      let finished = false;
       const done = () => {
-        if (--pending <= 0) cb();
+        if (finished) return;
+        if (--pending <= 0) { finished = true; cb(); }
       };
       imgs.forEach(img => {
         if (img.complete) done();
@@ -319,6 +321,10 @@
           img.addEventListener('error', done);
         }
       });
+      // 兜底：5 秒后无论图片是否加载完都初始化，避免个别图片挂起（如微信内访问第三方图床）导致整本书出不来
+      setTimeout(() => {
+        if (!finished) { finished = true; cb(); }
+      }, 5000);
     }
 
     let pageFlip = null;
