@@ -612,6 +612,7 @@
       <h1>我的画册</h1>
       <div style="display:flex; gap:10px; align-items:center;">
         <button onclick="window.open('index.html', '_blank')" style="padding:10px 16px; background:#333; border:none; border-radius:6px; color:#aaa; cursor:pointer; font-size:13px;">首页</button>
+        <button onclick="openAssets()" style="padding:10px 16px; background:#333; border:none; border-radius:6px; color:#aaa; cursor:pointer; font-size:13px;">素材库 ▾</button>
         <div style="position:relative;">
           <button onclick="toggleSettingsMenu(event)" style="padding:10px 16px; background:#333; border:none; border-radius:6px; color:#aaa; cursor:pointer; font-size:13px;">设置 ▾</button>
           <div id="settingsDropdown" style="display:none; position:absolute; top:100%; right:0; margin-top:6px; background:#1a1a2e; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.3); min-width:140px; overflow:hidden; z-index:100;">
@@ -1384,16 +1385,19 @@
       editingPageIdx = idx;
       document.getElementById('htmlEditor').value = config.pages[idx].html || '';
       document.getElementById('htmlModal').style.display = 'flex';
+      refreshHtmlTplList();
     }
     function openCoverHtmlEditor() {
       editingType = 'cover';
       document.getElementById('htmlEditor').value = config.cover.html || '';
       document.getElementById('htmlModal').style.display = 'flex';
+      refreshHtmlTplList();
     }
     function openBackHtmlEditor() {
       editingType = 'back';
       document.getElementById('htmlEditor').value = config.backCover.html || '';
       document.getElementById('htmlModal').style.display = 'flex';
+      refreshHtmlTplList();
     }
     function closeHtmlEditor() {
       document.getElementById('htmlModal').style.display = 'none';
@@ -1417,6 +1421,198 @@
       }
       updateConfig();
       closeHtmlEditor();
+    }
+
+    // ==========================================
+    //  素材库：HTML 模板 + 图片库
+    // ==========================================
+    let tplList = [];
+    let tplCategory = 'cover';
+    let assetsTab = 'tpl';
+    let editingTplId = null;
+    const MATERIAL_BUCKET = 'materials';
+
+    async function loadTemplates() {
+      const { data, error } = await supabase
+        .from('book_templates')
+        .select('id, name, category, html')
+        .order('created_at', { ascending: true });
+      if (error) { console.log('模板加载失败', error.message); return; }
+      tplList = data || [];
+      renderTplList();
+    }
+
+    function openAssets() {
+      document.getElementById('assetsModal').style.display = 'flex';
+      switchAssetsTab(assetsTab || 'tpl');
+      switchTplCat(tplCategory);
+    }
+    function closeAssets() {
+      document.getElementById('assetsModal').style.display = 'none';
+    }
+
+    function switchAssetsTab(tab) {
+      assetsTab = tab;
+      const tplBtn = document.getElementById('assetsTabTpl');
+      const imgBtn = document.getElementById('assetsTabImg');
+      if (tab === 'tpl') {
+        tplBtn.style.background = '#6c5ce7'; tplBtn.style.color = '#fff';
+        imgBtn.style.background = '#333'; imgBtn.style.color = '#aaa';
+        document.getElementById('assetsTplPanel').style.display = '';
+        document.getElementById('assetsImgPanel').style.display = 'none';
+      } else {
+        imgBtn.style.background = '#6c5ce7'; imgBtn.style.color = '#fff';
+        tplBtn.style.background = '#333'; tplBtn.style.color = '#aaa';
+        document.getElementById('assetsTplPanel').style.display = 'none';
+        document.getElementById('assetsImgPanel').style.display = '';
+        loadMaterials();
+      }
+    }
+
+    function switchTplCat(cat) {
+      tplCategory = cat;
+      const map = { cover: 'tplCatCover', page: 'tplCatPage', back: 'tplCatBack' };
+      Object.keys(map).forEach(c => {
+        const btn = document.getElementById(map[c]);
+        if (!btn) return;
+        btn.style.background = c === cat ? '#6c5ce7' : '#2a2a3c';
+        btn.style.color = c === cat ? '#fff' : '#ccc';
+      });
+      renderTplList();
+    }
+
+    function renderTplList() {
+      const box = document.getElementById('tplList');
+      if (!box) return;
+      const list = tplList.filter(t => t.category === tplCategory);
+      if (!list.length) {
+        box.innerHTML = '<div style="color:#666; font-size:13px; padding:24px; text-align:center;">该分类还没有模板，点击「+ 新增模板」创建</div>';
+        return;
+      }
+      box.innerHTML = list.map(t => `
+        <div style="display:flex; align-items:center; gap:10px; background:#22223a; border-radius:8px; padding:10px 14px;">
+          <div style="flex:1; font-size:13px; color:#ddd; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.name}</div>
+          <button onclick="openTplEditor('${t.id}')" style="padding:5px 12px; background:#333; border:none; border-radius:6px; color:#aaa; cursor:pointer; font-size:12px;">编辑</button>
+          <button onclick="deleteTpl('${t.id}')" style="padding:5px 12px; background:#333; border:none; border-radius:6px; color:#e74c3c; cursor:pointer; font-size:12px;">删除</button>
+        </div>`).join('');
+    }
+
+    function openTplEditor(id) {
+      editingTplId = id || null;
+      const tpl = id ? tplList.find(t => t.id === id) : null;
+      document.getElementById('tplEditorTitle').textContent = tpl ? '编辑模板' : '新增模板';
+      document.getElementById('tplName').value = tpl ? tpl.name : '';
+      document.getElementById('tplHtml').value = tpl ? tpl.html : '';
+      document.getElementById('tplEditorModal').style.display = 'flex';
+    }
+    function closeTplEditor() {
+      document.getElementById('tplEditorModal').style.display = 'none';
+      editingTplId = null;
+    }
+    async function saveTpl() {
+      const name = document.getElementById('tplName').value.trim();
+      const html = document.getElementById('tplHtml').value;
+      if (!name) { alert('请填写模板名称'); return; }
+      const row = { name, category: tplCategory, html };
+      if (editingTplId) {
+        const { error } = await supabase.from('book_templates').update(row).eq('id', editingTplId);
+        if (error) { alert('保存失败：' + error.message); return; }
+      } else {
+        const { error } = await supabase.from('book_templates').insert(row);
+        if (error) { alert('保存失败：' + error.message); return; }
+      }
+      closeTplEditor();
+      loadTemplates();
+    }
+    async function deleteTpl(id) {
+      if (!confirm('确定删除该模板？')) return;
+      const { error } = await supabase.from('book_templates').delete().eq('id', id);
+      if (error) { alert('删除失败：' + error.message); return; }
+      loadTemplates();
+    }
+
+    // 套用模板（封面/内页/封底编辑弹窗里）
+    function refreshHtmlTplList() {
+      const box = document.getElementById('htmlTplList');
+      if (!box) return;
+      const cat = editingType === 'cover' ? 'cover' : editingType === 'back' ? 'back' : 'page';
+      const list = tplList.filter(t => t.category === cat);
+      if (!list.length) {
+        box.innerHTML = '<span style="font-size:12px; color:#666;">暂无模板，可到「素材库」新增</span>';
+        return;
+      }
+      box.innerHTML = list.map(t => `
+        <button onclick="applyTpl('${t.id}')" style="padding:5px 12px; background:#2a2a3c; border:1px solid #444; border-radius:16px; color:#ccc; cursor:pointer; font-size:12px;">${t.name}</button>`).join('');
+    }
+    function applyTpl(id) {
+      const tpl = tplList.find(t => t.id === id);
+      if (!tpl) return;
+      document.getElementById('htmlEditor').value = tpl.html;
+    }
+
+    // 图片库
+    async function loadMaterials() {
+      const box = document.getElementById('materialList');
+      if (!box) return;
+      box.innerHTML = '<div style="color:#666; font-size:13px; padding:24px; text-align:center;">加载中…</div>';
+      const { data, error } = await supabase.storage.from(MATERIAL_BUCKET).list('');
+      if (error || !data) {
+        box.innerHTML = '<div style="color:#e74c3c; font-size:13px; padding:24px; text-align:center;">图片加载失败：' + (error && error.message || '未知错误') + '。请确认已执行建表 SQL（素材库图片桶）</div>';
+        return;
+      }
+      const imgs = data.filter(f => f.metadata && /^image\//.test(f.metadata.mimetype || ''));
+      if (!imgs.length) {
+        box.innerHTML = '<div style="color:#666; font-size:13px; padding:24px; text-align:center;">还没有素材图片，点击「+ 上传图片」添加</div>';
+        return;
+      }
+      box.innerHTML = imgs.map(f => {
+        const url = supabase.storage.from(MATERIAL_BUCKET).getPublicUrl(f.name).data.publicUrl;
+        return `
+          <div style="background:#22223a; border-radius:8px; overflow:hidden;">
+            <img src="${url}" style="width:100%; height:90px; object-fit:cover; display:block; background:#111;" onerror="this.style.display='none'">
+            <div style="padding:8px; display:flex; flex-direction:column; gap:6px;">
+              <div style="font-size:11px; color:#aaa; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${f.name}</div>
+              <div style="display:flex; gap:6px;">
+                <button onclick="copyMaterialLink('${f.name}')" style="flex:1; padding:5px 0; background:#6c5ce7; border:none; border-radius:6px; color:#fff; cursor:pointer; font-size:11px;">复制链接</button>
+                <button onclick="deleteMaterial('${f.name}')" style="padding:5px 8px; background:#333; border:none; border-radius:6px; color:#e74c3c; cursor:pointer; font-size:11px;">删除</button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+    async function uploadMaterials(e) {
+      const files = Array.from(e.target.files || []);
+      if (!files.length) return;
+      let ok = 0, fail = 0;
+      for (const file of files) {
+        const path = Date.now() + '_' + file.name.replace(/[^\w.\-一-龥]/g, '_');
+        const { error } = await supabase.storage.from(MATERIAL_BUCKET).upload(path, file, { cacheControl: '3600', upsert: true });
+        if (error) fail++; else ok++;
+      }
+      loadMaterials();
+      e.target.value = '';
+      alert('上传完成：成功 ' + ok + ' 张' + (fail ? '，失败 ' + fail + ' 张' : ''));
+    }
+    async function copyMaterialLink(name) {
+      const url = supabase.storage.from(MATERIAL_BUCKET).getPublicUrl(name).data.publicUrl;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(url);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = url; document.body.appendChild(ta); ta.select();
+          document.execCommand('copy'); document.body.removeChild(ta);
+        }
+        alert('链接已复制');
+      } catch(e2) {
+        alert('复制失败，请手动复制：' + url);
+      }
+    }
+    async function deleteMaterial(name) {
+      if (!confirm('确定删除该图片？模板中引用它的链接将失效。')) return;
+      const { error } = await supabase.storage.from(MATERIAL_BUCKET).remove([name]);
+      if (error) { alert('删除失败：' + error.message); return; }
+      loadMaterials();
     }
 
     function removePage(idx) {
@@ -1771,6 +1967,7 @@
       document.getElementById('viewEdit').style.display = 'none';
       document.getElementById('viewList').style.display = '';
       renderBooksGrid();
+      loadTemplates();
     }
 
     function showEditView() {
@@ -2059,10 +2256,67 @@
     config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
   </script>
 
+<!-- 素材库弹窗 -->
+<div id="assetsModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center;">
+  <div style="background:#1a1a2e; border-radius:12px; padding:24px; width:92%; max-width:760px; max-height:84vh; display:flex; flex-direction:column;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 style="margin:0; color:#eee; font-size:16px;">素材库</h3>
+      <button onclick="closeAssets()" style="background:none; border:none; color:#888; cursor:pointer; font-size:18px; line-height:1;">✕</button>
+    </div>
+    <!-- tab 切换 -->
+    <div style="display:flex; gap:6px; margin-bottom:16px;">
+      <button id="assetsTabTpl" class="assets-tab active" onclick="switchAssetsTab('tpl')" style="padding:8px 18px; border:none; border-radius:20px; background:#6c5ce7; color:#fff; cursor:pointer; font-size:13px;">HTML 模板</button>
+      <button id="assetsTabImg" class="assets-tab" onclick="switchAssetsTab('img')" style="padding:8px 18px; border:none; border-radius:20px; background:#333; color:#aaa; cursor:pointer; font-size:13px;">图片库</button>
+    </div>
+
+    <!-- HTML 模板 tab -->
+    <div id="assetsTplPanel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="display:flex; gap:6px;">
+          <button id="tplCatCover" class="tpl-cat active" onclick="switchTplCat('cover')" style="padding:6px 14px; border:none; border-radius:16px; background:#2a2a3c; color:#ccc; cursor:pointer; font-size:12px;">封面</button>
+          <button id="tplCatPage" class="tpl-cat" onclick="switchTplCat('page')" style="padding:6px 14px; border:none; border-radius:16px; background:#2a2a3c; color:#ccc; cursor:pointer; font-size:12px;">内页</button>
+          <button id="tplCatBack" class="tpl-cat" onclick="switchTplCat('back')" style="padding:6px 14px; border:none; border-radius:16px; background:#2a2a3c; color:#ccc; cursor:pointer; font-size:12px;">封底</button>
+        </div>
+        <button onclick="openTplEditor(null)" style="padding:8px 16px; background:#6c5ce7; border:none; border-radius:6px; color:#fff; cursor:pointer; font-size:13px;">+ 新增模板</button>
+      </div>
+      <div id="tplList" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; min-height:260px; max-height:46vh;"></div>
+    </div>
+
+    <!-- 图片库 tab -->
+    <div id="assetsImgPanel" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="font-size:12px; color:#888;">上传后点击「复制链接」粘贴进 HTML 模板使用</div>
+        <button onclick="document.getElementById('materialUpload').click()" style="padding:8px 16px; background:#6c5ce7; border:none; border-radius:6px; color:#fff; cursor:pointer; font-size:13px;">+ 上传图片（可多选）</button>
+        <input type="file" id="materialUpload" accept="image/*" multiple style="display:none" onchange="uploadMaterials(event)">
+      </div>
+      <div id="materialList" style="flex:1; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:10px; min-height:260px; max-height:46vh;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 模板编辑子弹窗（新增/编辑模板） -->
+<div id="tplEditorModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:1100; justify-content:center; align-items:center;">
+  <div style="background:#1a1a2e; border-radius:12px; padding:24px; width:90%; max-width:640px; max-height:84vh; display:flex; flex-direction:column;">
+    <h3 id="tplEditorTitle" style="margin:0 0 16px; color:#eee; font-size:16px;">新增模板</h3>
+    <div style="margin-bottom:12px;">
+      <input type="text" id="tplName" placeholder="模板名称（如：极简封面 A）" style="width:100%; padding:10px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
+    </div>
+    <textarea id="tplHtml" placeholder="粘贴模板 HTML 代码" style="flex:1; min-height:280px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#eee; padding:12px; font-family:monospace; font-size:13px; resize:vertical; box-sizing:border-box;"></textarea>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+      <button onclick="closeTplEditor()" style="padding:8px 16px; background:#333; border:none; border-radius:6px; color:#aaa; cursor:pointer;">取消</button>
+      <button onclick="saveTpl()" style="padding:8px 16px; background:#6c5ce7; border:none; border-radius:6px; color:#fff; cursor:pointer;">保存模板</button>
+    </div>
+  </div>
+</div>
+
 <!-- HTML编辑弹窗 -->
 <div id="htmlModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center;">
   <div style="background:#1a1a2e; border-radius:12px; padding:24px; width:90%; max-width:600px; max-height:80vh; display:flex; flex-direction:column;">
     <h3 style="margin:0 0 16px; color:#eee; font-size:16px;">编辑 HTML 内容</h3>
+    <div id="htmlTplRow" style="margin-bottom:14px;">
+      <div style="font-size:12px; color:#888; margin-bottom:6px;">套用模板（点击直接覆盖下方内容）</div>
+      <div id="htmlTplList" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+    </div>
     <textarea id="htmlEditor" style="flex:1; min-height:300px; background:#0f0f1a; border:1px solid #333; border-radius:6px; color:#eee; padding:12px; font-family:monospace; font-size:13px; resize:vertical;"></textarea>
     <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
       <button onclick="closeHtmlEditor()" style="padding:8px 16px; background:#333; border:none; border-radius:6px; color:#aaa; cursor:pointer;">取消</button>
