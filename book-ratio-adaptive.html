@@ -175,7 +175,8 @@
           }
         }
       } catch(e) {}
-      return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      // 无参数或画册不存在/查询失败：返回 null，由 init 显示友好提示（而不是空白画册）
+      return null;
     }
 
     function buildPagesFromConfig(cfg) {
@@ -216,6 +217,16 @@
     async function init() {
       try {
         CONFIG = await loadConfig();
+
+        // 无参数 / 画册不存在 / 查询失败：给出明确提示，而不是空白画册
+        if (!CONFIG) {
+          document.getElementById('loading').innerHTML =
+            '<div style="text-align:center; color:#666; font-size:15px; line-height:2;">' +
+            '未找到画册，请从首页选择后打开<br>' +
+            '<a href="index.html" style="display:inline-block; margin-top:12px; padding:10px 28px; background:#1a1a1a; color:#fff; border-radius:20px; text-decoration:none; font-size:14px;">返回首页</a>' +
+            '</div>';
+          return;
+        }
 
         // 判断当前设备是否允许访问
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
@@ -328,6 +339,7 @@
     }
 
     let pageFlip = null;
+    let isSinglePage = false; // 移动端单页模式标记（页码显示用）
 
     function calcPageSize() {
       const availW = window.innerWidth - 60;
@@ -353,6 +365,8 @@
         pageFlip = null;
       }
 
+      // 移动端统一单页模式（usePortrait），横版竖版画册在手机上都是一页一页翻
+      isSinglePage = size.isMobile;
       pageFlip = new St.PageFlip(
         document.getElementById('book'),
         {
@@ -362,7 +376,7 @@
           showCover: true,
           drawShadow: true,
           flippingTime: 800,
-          usePortrait: size.isMobile && (BOOK_RATIO_H > BOOK_RATIO_W),
+          usePortrait: isSinglePage,
           maxShadowOpacity: 0.5,
           mobileScrollSupport: true
         }
@@ -380,6 +394,11 @@
       if (!pageFlip) return;
       const cur = pageFlip.getCurrentPageIndex();
       const total = pageFlip.getPageCount();
+      if (isSinglePage) {
+        // 移动端单页模式：封面 1/5，内页逐页 2/5、3/5……
+        document.getElementById('pageNum').textContent = Math.min(cur + 1, total) + ' / ' + total;
+        return;
+      }
       // 封面从0开始：封面0/4，内页1-2/4，封底4/4
       if (cur === 0) {
         document.getElementById('pageNum').textContent = '0 / ' + total;
