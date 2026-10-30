@@ -362,8 +362,20 @@ async function shareBook() {
   const url = code
     ? (location.origin + '/s/' + code)
     : (location.origin + '/book-ratio-adaptive.html?book=' + currentBookId);
+  const title = document.title || '画册分享';
+
+  // 移动端优先调起系统分享面板（微信/朋友圈/短信任选），桌面端或失败时回退复制链接
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: title, url: url });
+      return;
+    } catch(e) {
+      if (e && e.name === 'AbortError') return; // 用户取消分享，不提示
+      lcWarn('系统分享面板调起失败，回退复制链接', e);
+    }
+  }
   const ok = await copyText(url);
-  showToast(ok ? '复制链接成功' : '复制失败，请手动复制');
+  showToast(ok ? '复制链接成功，可转发给朋友' : '复制失败，请手动复制');
 }
 
 // 后台编辑实时预览：接收 admin 推送的消息（本地处理，不整页刷新，保留设备模式与播放状态）
