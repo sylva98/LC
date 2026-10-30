@@ -237,17 +237,22 @@ function calcPageSize() {
 }
 
 function initBook() {
-  loadedFlags = {};   // resize 重建后重新按需加载（浏览器缓存保证快速）
-  buildPages();
-  pageImgs = Array.from(document.querySelectorAll('#book .page-img'));
   const size = calcPageSize();
 
-  try {
-    if (pageFlip) {
-      pageFlip.destroy();
-      pageFlip = null;
-    }
+  // 注意：pageFlip.destroy() 会把 #book 元素整个从 DOM 移除（page-flip 源码
+  // destroy(){this.ui.destroy(), this.block.remove()}），
+  // 因此顺序必须是：先销毁旧实例 → 再重建 #book 及页面 → 最后创建新实例。
+  // 顺序错了会导致 getElementById('book') 拿到 null，整个阅读器崩溃。
+  if (pageFlip) {
+    try { pageFlip.destroy(); } catch(e) { lcWarn('销毁旧画册实例失败（防御性忽略）', e); }
+    pageFlip = null;
+  }
 
+  loadedFlags = {};   // 重建后重新按需加载（浏览器缓存保证快速）
+  buildPages();
+  pageImgs = Array.from(document.querySelectorAll('#book .page-img'));
+
+  try {
     // 移动端统一单页模式（usePortrait），横版竖版画册在手机上都是一页一页翻
     isSinglePage = size.isMobile;
     pageFlip = new St.PageFlip(
@@ -355,9 +360,11 @@ function checkMusicStart() {
 }
 
 function nextPage() {
+  if (!pageFlip) return;
   pageFlip.flipNext('bottom');
 }
 function prevPage() {
+  if (!pageFlip) return;
   pageFlip.flipPrev('bottom');
 }
 
