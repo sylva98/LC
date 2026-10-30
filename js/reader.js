@@ -265,7 +265,7 @@ function initBook() {
         drawShadow: true,
         flippingTime: 850,        // 翻页时长稍拉长，动作更柔更像纸页
         usePortrait: isSinglePage,
-        maxShadowOpacity: 0.55,   // 翻页时的褶皱阴影更明显，增强纸张感
+        maxShadowOpacity: 0.38,   // 书脊阴影压轻：过高会在封面留下一道很重的深色带
         mobileScrollSupport: true,
         swipeDistance: 18         // 滑动翻页更灵敏（默认 25 偏钝）
       }

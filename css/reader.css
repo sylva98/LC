@@ -159,22 +159,4 @@ html, body {
     border-radius: 6px;
     box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.2);
   }
-
-  /* 书脊感：单页模式下给每页右缘加一道渐变暗边，模拟书页叠住的厚度 */
-  .page::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    width: 12px;
-    background: linear-gradient(to left, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0));
-    pointer-events: none;
-    z-index: 10;
-  }
-  /* 封面（showCover 的第一页）书脊更厚一点 */
-  .page:first-child::after {
-    width: 18px;
-    background: linear-gradient(to left, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
-  }
 }
