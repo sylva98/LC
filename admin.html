@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>画册后台管理</title>
+  <script src="supabase.min.js"></script>
+  <script src="common.js"></script>
+  <link rel="stylesheet" href="common.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<!-- 登录界面 -->
+<div id="loginView" class="login-overlay">
+  <div class="login-box">
+    <h2 class="login-title">管理后台登录</h2>
+    <div class="login-field">
+      <input type="text" id="loginUser" placeholder="账号" class="login-input">
+    </div>
+    <div class="login-field login-field--lg">
+      <input type="password" id="loginPass" placeholder="密码" class="login-input" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button onclick="doLogin()" class="login-btn">登录</button>
+    <div id="loginError" class="login-error">账号或密码错误</div>
+  </div>
+</div>
+
+  <!-- ===== 列表视图 ===== -->
+  <div id="viewList" class="view-list" style="display:none">
+    <div class="list-header">
+      <h1>我的画册</h1>
+      <div class="header-actions">
+        <button onclick="window.open('index.html', '_blank')" class="toolbar-btn">首页</button>
+        <button onclick="openAssets()" class="toolbar-btn">素材库 ▾</button>
+        <div class="dropdown-wrap">
+          <button onclick="toggleSettingsMenu(event)" class="toolbar-btn">设置 ▾</button>
+          <div id="settingsDropdown" class="dropdown-menu" style="display:none">
+            <div onclick="closeSettingsMenu(); openChangePass();" class="dropdown-item">修改密码</div>
+            <div onclick="closeSettingsMenu(); logout();" class="dropdown-item">退出登录</div>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="newBook()">+ 新建画册</button>
+      </div>
+    </div>
+    <div class="filter-row" id="filterRow">
+      <div class="cselect" id="csCategory" title="按分类筛选">
+        <div class="cselect-btn" onclick="toggleCSelect('csCategory', event)">
+          <span class="cselect-label" id="csCategoryLabel">全部分类</span>
+          <svg class="cselect-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="cselect-panel" id="csCategoryPanel"></div>
+      </div>
+      <div class="cselect" id="csSort" title="排序方式">
+        <div class="cselect-btn" onclick="toggleCSelect('csSort', event)">
+          <span class="cselect-label" id="csSortLabel">最新发布</span>
+          <svg class="cselect-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="cselect-panel" id="csSortPanel"></div>
+      </div>
+      <div class="cselect" id="csDevice" title="显示端筛选">
+        <div class="cselect-btn" onclick="toggleCSelect('csDevice', event)">
+          <span class="cselect-label" id="csDeviceLabel">全部显示端</span>
+          <svg class="cselect-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="cselect-panel" id="csDevicePanel"></div>
+      </div>
+      <div class="cselect" id="csFeatured" title="推荐状态">
+        <div class="cselect-btn" onclick="toggleCSelect('csFeatured', event)">
+          <span class="cselect-label" id="csFeaturedLabel">全部状态</span>
+          <svg class="cselect-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="cselect-panel" id="csFeaturedPanel"></div>
+      </div>
+      <div class="filter-search">
+        <div class="search-input-wrap">
+          <input type="text" id="filterKeyword" placeholder="搜索画册名称">
+          <button class="clear-keyword" id="clearKeyword" onclick="clearKeyword()" title="清空">✕</button>
+        </div>
+        <button onclick="applyFilter()">搜索</button>
+      </div>
+      <span class="filter-count" id="filterCount">共 0 本</span>
+    </div>
+    <div class="books-grid" id="booksGrid"></div>
+  </div>
+
+  <!-- ===== 编辑视图 ===== -->
+  <div id="viewEdit" class="view-edit" style="display:none">
+
+  <!-- 左侧配置面板 -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1 class="sidebar-back" onclick="showListView()" title="返回列表">← 返回</h1>
+      <div class="sidebar-actions">
+        <div class="dropdown-wrap">
+          <button onclick="toggleImportMenu(event)">批量导入 ▾</button>
+          <div id="importDropdown" class="dropdown-menu" style="display:none">
+            <div onclick="closeImportMenu(); document.getElementById('importImages').click();" class="dropdown-item">批量导入图片</div>
+            <div onclick="closeImportMenu(); openLinksImporter();" class="dropdown-item">批量链接导入</div>
+          </div>
+        </div>
+        <input type="file" id="importImages" accept="image/*" multiple class="file-hidden" onchange="importImages(event)">
+        <button onclick="shareCurrentBook()">分享 🔗</button>
+        <button class="primary" onclick="openPreview()">预览 ↗</button>
+      </div>
+    </div>
+
+    <div class="sidebar-body">
+
+      <!-- 全局设置 -->
+      <div class="section">
+        <div class="section-title">全局设置</div>
+
+        <div class="form-row">
+          <label>背景</label>
+          <div class="bg-row">
+            <div id="bgThumb" class="bg-thumb" onclick="document.getElementById('bgUpload').click()" title="点击上传背景图">
+              <span class="thumb-empty">空</span>
+            </div>
+            <div class="bg-fields">
+              <div class="input-btn-row">
+                <input type="text" id="bgImage" placeholder="粘贴链接或上传" oninput="updateConfig(); updateBgThumb();" class="input-flex">
+                <button class="upload-btn compact" onclick="document.getElementById('bgUpload').click()">📁</button>
+              </div>
+              <div>
+                <input type="color" id="bgColor" onchange="updateConfig()">
+              </div>
+            </div>
+          </div>
+          <input type="file" id="bgUpload" accept="image/*" class="file-hidden" onchange="handleBgUpload(event)">
+        </div>
+
+        <div class="form-row">
+          <label>画册比例（单页宽 : 高）</label>
+          <div class="form-row-inline">
+            <div>
+              <input type="number" id="ratioW" value="420" onchange="updateConfig()">
+            </div>
+            <div>
+              <input type="number" id="ratioH" value="560" onchange="updateConfig()">
+            </div>
+          </div>
+          <div class="hint">比如 420:560 = 3:4 竖版；600:450 = 4:3 横版</div>
+        </div>
+
+        <div class="form-row">
+          <label>显示设置</label>
+          <div class="check-row">
+            <label class="check-label">
+              <input type="checkbox" id="showMobile" onchange="updateConfig()">
+              移动端
+            </label>
+            <label class="check-label">
+              <input type="checkbox" id="showPc" onchange="updateConfig()">
+              PC端
+            </label>
+          </div>
+          <div class="check-row check-row--mt">
+            <label class="check-label">
+              <input type="checkbox" id="bookFeatured" onchange="updateConfig()">
+              是否推荐
+            </label>
+            <label class="check-label">
+              <input type="checkbox" id="showIndexIcon" onchange="updateConfig()" checked>
+              显示首页图标
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>分类（可选，相同分类自动分组）</label>
+            <input type="text" id="bookCategory" list="categoryList" placeholder="输入分类名称，如：油画、摄影" oninput="updateConfig()">
+            <datalist id="categoryList"></datalist>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>背景音乐（可选）</label>
+          <div class="music-row">
+            <input type="text" id="musicUrl" placeholder="粘贴mp3链接或上传" oninput="updateConfig()" class="input-flex">
+            <button class="upload-btn compact" onclick="document.getElementById('musicUpload').click()">📁</button>
+          </div>
+          <input type="file" id="musicUpload" accept="audio/*" class="file-hidden" onchange="handleMusicUpload(event)">
+          <div class="music-volume-row">
+            <label class="field-note">音量：<span id="musicVolumeText">0.5</span></label>
+            <input type="range" id="musicVolume" min="0" max="1" step="0.1" value="0.5" class="input-flex" oninput="document.getElementById('musicVolumeText').innerText=this.value; updateConfig()">
+          </div>
+          <div class="music-start-row">
+            <label class="field-note">从第</label>
+            <input type="number" id="musicStartPage" value="1" min="1" class="input-page-num" onchange="updateConfig()">
+            <label class="field-note">页开始播放</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 封面 -->
+      <div class="section">
+        <div class="section-title">封面</div>
+        <div class="page-card" onmousedown="jumpToPage(0)">
+          <div class="type-toggle">
+            <button id="coverTypeImage" onclick="setCoverType('image')">纯图片</button>
+            <button id="coverTypeHtml" onclick="setCoverType('html')">HTML 文字</button>
+          </div>
+          <div id="coverImageWrap">
+            <div class="form-row">
+              <label>封面图片</label>
+              <div class="thumb-row">
+                <div id="coverThumb" class="cover-thumb">
+                  <span class="thumb-empty">空</span>
+                </div>
+                <div class="input-btn-row input-btn-row--grow">
+                  <input type="text" id="coverImage" placeholder="粘贴链接或上传" oninput="updateConfig(); updateCoverThumb();" class="input-flex input-h36">
+                  <button class="upload-btn compact" onclick="document.getElementById('coverUpload').click()">📁</button>
+                </div>
+              </div>
+              <input type="file" id="coverUpload" accept="image/*" class="file-hidden" onchange="handleUpload(event, 'coverImage')">
+            </div>
+          </div>
+          <div id="coverHtmlWrap" style="display:none">
+            <div class="form-row">
+              <label>封面 HTML 内容</label>
+              <button id="coverHtmlBtn" class="html-edit-btn">
+                点击编辑HTML内容
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 内页列表 -->
+      <div class="section">
+        <div class="section-title">内页（共 <span id="pageCount">0</span> 页）</div>
+        <div id="pagesList"></div>
+      </div>
+
+      <!-- 封底 -->
+      <div class="section">
+        <div class="section-title">封底</div>
+        <div class="page-card" onmousedown="jumpToPage(Math.floor((config.pages.length + 2) / 2))">
+          <div class="type-toggle">
+            <button id="backTypeImage" onclick="setBackType('image')">纯图片</button>
+            <button id="backTypeHtml" class="active" onclick="setBackType('html')">HTML 文字</button>
+          </div>
+          <div id="backImageWrap" style="display:none">
+            <div class="form-row">
+              <label>封底图片</label>
+              <div class="thumb-row">
+                <div id="backThumb" class="cover-thumb">
+                  <span class="thumb-empty">空</span>
+                </div>
+                <div class="input-btn-row input-btn-row--grow">
+                  <input type="text" id="backImage" placeholder="粘贴链接或上传" oninput="updateConfig(); updateBackThumb();" class="input-flex input-h36">
+                  <button class="upload-btn compact">📁</button>
+                </div>
+              </div>
+              <input type="file" id="backUpload" accept="image/*" class="file-hidden" onchange="handleUpload(event, 'backImage')">
+            </div>
+          </div>
+          <div id="backHtmlWrap">
+            <div class="form-row">
+              <label>封底 HTML 内容</label>
+              <button id="backHtmlBtn" class="html-edit-btn">
+                点击编辑HTML内容
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 右侧预览 -->
+  <div class="preview-area">
+    <div class="preview-badge">实时预览</div>
+    <div class="preview-device-toggle" role="group" aria-label="预览设备">
+      <button type="button" class="device-btn active" data-mode="pc">PC 端</button>
+      <button type="button" class="device-btn" data-mode="mobile">移动端</button>
+    </div>
+    <iframe id="previewFrame" src="book-ratio-adaptive.html"></iframe>
+  </div>
+
+  </div><!-- /viewEdit -->
+
+  <script src="js/admin.js"></script>
+
+<!-- 素材库弹窗 -->
+<div id="assetsModal" class="modal-overlay">
+  <div class="modal-box modal-box--col">
+    <div class="modal-toolbar">
+      <h3 class="modal-title">素材库</h3>
+      <button onclick="closeAssets()" class="modal-close">✕</button>
+    </div>
+    <!-- tab 切换 -->
+    <div class="assets-tabs">
+      <button id="assetsTabTpl" class="assets-tab active" onclick="switchAssetsTab('tpl')">HTML 模板</button>
+      <button id="assetsTabImg" class="assets-tab" onclick="switchAssetsTab('img')">图片库</button>
+    </div>
+
+    <!-- HTML 模板 tab -->
+    <div id="assetsTplPanel">
+      <div class="modal-toolbar modal-toolbar--sm">
+        <div class="tpl-cats">
+          <button id="tplCatCover" class="tpl-cat active" onclick="switchTplCat('cover')">封面</button>
+          <button id="tplCatPage" class="tpl-cat" onclick="switchTplCat('page')">内页</button>
+          <button id="tplCatBack" class="tpl-cat" onclick="switchTplCat('back')">封底</button>
+        </div>
+        <button onclick="openTplEditor(null)" class="btn-accent btn-sm">+ 新增模板</button>
+      </div>
+      <div id="tplList" class="tpl-list"></div>
+    </div>
+
+    <!-- 图片库 tab -->
+    <div id="assetsImgPanel" style="display:none;">
+      <div class="modal-toolbar modal-toolbar--sm">
+        <div class="field-note">上传后点击「复制链接」粘贴进 HTML 模板使用</div>
+        <button onclick="document.getElementById('materialUpload').click()" class="btn-accent btn-sm">+ 上传图片（可多选）</button>
+        <input type="file" id="materialUpload" accept="image/*" multiple class="file-hidden" onchange="uploadMaterials(event)">
+      </div>
+      <div id="materialList" class="material-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 模板编辑子弹窗（新增/编辑模板） -->
+<div id="tplEditorModal" class="modal-overlay">
+  <div class="modal-box modal-box--col">
+    <h3 id="tplEditorTitle" class="modal-title modal-title--mb16">新增模板</h3>
+    <div class="modal-field">
+      <input type="text" id="tplName" placeholder="模板名称（如：极简封面 A）" class="modal-input">
+    </div>
+    <textarea id="tplHtml" placeholder="粘贴模板 HTML 代码" class="modal-textarea"></textarea>
+    <div class="modal-actions">
+      <button onclick="closeTplEditor()" class="btn-muted">取消</button>
+      <button onclick="saveTpl()" class="btn-accent">保存模板</button>
+    </div>
+  </div>
+</div>
+
+<!-- HTML编辑弹窗 -->
+<div id="htmlModal" class="modal-overlay">
+  <div class="modal-box modal-box--col">
+    <h3 class="modal-title modal-title--mb16">编辑 HTML 内容</h3>
+    <div id="htmlTplRow" class="html-tpl-row">
+      <div class="html-tpl-hint">套用模板（点击直接覆盖下方内容）</div>
+      <div id="htmlTplList" class="tpl-chip-row"></div>
+    </div>
+    <textarea id="htmlEditor" class="modal-textarea"></textarea>
+    <div class="modal-actions">
+      <button onclick="closeHtmlEditor()" class="btn-muted">取消</button>
+      <button onclick="saveHtmlEditor()" class="btn-accent">确认保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 修改密码弹窗 -->
+<div id="changePassModal" class="modal-overlay">
+  <div class="modal-box">
+    <h3 class="modal-title modal-title--mb20">修改密码</h3>
+    <div class="modal-field">
+      <input type="password" id="newPass" placeholder="新密码（至少6位）" class="modal-input modal-input--lg">
+    </div>
+    <div class="modal-field modal-field--lg">
+      <input type="password" id="confirmPass" placeholder="确认新密码" class="modal-input modal-input--lg">
+    </div>
+    <div class="btn-row">
+      <button onclick="closeChangePass()" class="btn-muted btn-block">取消</button>
+      <button onclick="saveChangePass()" class="btn-accent btn-block">保存</button>
+    </div>
+    <div id="passError" class="form-error">两次密码不一致</div>
+  </div>
+</div>
+
+<!-- 批量链接导入弹窗 -->
+<div id="linksModal" class="modal-overlay">
+  <div class="modal-box modal-box--col">
+    <h3 class="modal-title modal-title--mb8">批量链接导入</h3>
+    <div class="links-hint">一行一个图片链接。第1张作为封面，最后1张作为封底，中间作为内页。留空行自动忽略。</div>
+    <textarea id="linksEditor" placeholder="https://example.com/cover.jpg&#10;https://example.com/page1.jpg&#10;https://example.com/page2.jpg&#10;https://example.com/back.jpg" class="modal-textarea"></textarea>
+    <div class="modal-actions">
+      <button onclick="closeLinksImporter()" class="btn-muted">取消</button>
+      <button onclick="applyLinksImporter()" class="btn-red">导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 轻提示 -->
+<div id="adminToast" class="toast"></div>
+
+</body>
+</html>

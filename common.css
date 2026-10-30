@@ -1,0 +1,67 @@
+/* ==========================================
+   LC 画册项目公共样式
+   引入顺序：common.css → 页面自身样式
+   主题差异通过页面 :root 变量覆盖
+   ========================================== */
+
+/* ---- 基础 reset ---- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ---- cselect 自定义下拉组件（主题变量） ----
+   --cs-accent        激活/聚焦主色
+   --cs-accent-soft   主色柔和投影
+   --cs-hover-text    选项悬停文字色
+   --cs-border        默认边框
+   --cs-border-hover  悬停边框
+*/
+:root {
+  --cs-accent: #1a1a1a;
+  --cs-accent-soft: rgba(26, 26, 26, 0.08);
+  --cs-hover-text: #1a1a1a;
+  --cs-border: #e5e5e5;
+  --cs-border-hover: #ccc;
+}
+
+.cselect { position: relative; }
+.cselect-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  height: 34px;
+  background: #fff;
+  border: 1px solid var(--cs-border);
+  border-radius: 6px;
+  color: #333;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.cselect-btn:hover { border-color: var(--cs-border-hover); }
+.cselect-btn.active,
+.cselect-btn:focus-within { border-color: var(--cs-accent); box-shadow: 0 0 0 2px var(--cs-accent-soft); }
+.cselect-arrow { flex-shrink: 0; }
+.cselect-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  display: none;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  z-index: 300;
+  overflow: hidden;
+  padding: 4px 0;
+}
+.cselect-option {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.cselect-option:hover { background: #f5f5f5; color: var(--cs-hover-text); }

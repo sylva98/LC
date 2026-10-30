@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LC</title>
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="css/index.css">
+  <script src="supabase.min.js"></script>
+  <script src="common.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="logo">LC Portfolio</div>
+  <button id="mobileMenuBtn" class="mobile-menu-btn" onclick="toggleMobileMenu(event)" title="分类筛选">☰</button>
+</header>
+
+<!-- 移动端分类面板 -->
+<div id="mobileCategoryPanel" class="mobile-category-panel">
+  <div class="mobile-panel-title">分类筛选</div>
+  <div id="mobileCategoryList" class="mobile-category-list"></div>
+</div>
+
+<section class="hero">
+ <h1>聆晨拾光<br><em>听见时间在晨雾中流淌</em></h1>
+  <p>精选画册合集，翻阅之间，感受光影与色彩的流动。</p>
+</section>
+
+<!-- 移动端筛选（≤768px 显示）：搜索通栏 + 排序标签 -->
+<div class="mobile-filter" id="mobileFilter">
+  <div class="filter-search">
+    <div class="search-wrap">
+      <input type="text" id="mobileKeyword" placeholder="搜索">
+      <button class="clear-keyword" id="mobileClearKeyword" onclick="clearMobileKeyword()" title="清空">✕</button>
+    </div>
+    <button onclick="applyMobileFilter()">搜索</button>
+  </div>
+  <div class="seg">
+    <button class="seg-btn active" id="sortTabFeatured" onclick="setMobileSort('featured')">精选画册</button>
+    <button class="seg-btn" id="sortTabLatest" onclick="setMobileSort('latest')">最新发布</button>
+  </div>
+</div>
+
+<div class="filter-row" id="filterRow">
+  <div class="cselect" id="csCategory" title="按分类筛选">
+    <div class="cselect-btn" onclick="toggleCSelect('csCategory', event)">
+      <span class="cselect-label" id="csCategoryLabel">全部分类</span>
+      <svg class="cselect-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="cselect-panel" id="csCategoryPanel"></div>
+  </div>
+  <div class="cselect" id="csSort" title="排序方式">
+    <div class="cselect-btn" onclick="toggleCSelect('csSort', event)">
+      <span class="cselect-label" id="csSortLabel">精选画册</span>
+      <svg class="cselect-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="cselect-panel" id="csSortPanel"></div>
+  </div>
+  <div class="filter-search">
+    <div class="search-wrap">
+      <input type="text" id="filterKeyword" placeholder="搜索">
+      <button class="clear-keyword" id="clearKeyword" onclick="clearKeyword()" title="清空">✕</button>
+    </div>
+    <button onclick="applyFilter()">搜索</button>
+  </div>
+</div>
+
+<section class="gallery" id="gallery"></section>
+
+<script src="js/index.js"></script>
+
+</body>
+</html>
