@@ -240,28 +240,33 @@ function initBook() {
   pageImgs = Array.from(document.querySelectorAll('#book .page-img'));
   const size = calcPageSize();
 
-  if (pageFlip) {
-    try { pageFlip.destroy(); } catch(e) { lcWarn('销毁旧 pageFlip 实例失败（防御性忽略）', e); }
-    pageFlip = null;
-  }
-
-  // 移动端统一单页模式（usePortrait），横版竖版画册在手机上都是一页一页翻
-  isSinglePage = size.isMobile;
-  pageFlip = new St.PageFlip(
-    document.getElementById('book'),
-    {
-      width: size.width,
-      height: size.height,
-      size: 'fixed',
-      showCover: true,
-      drawShadow: true,
-      flippingTime: 800,
-      usePortrait: isSinglePage,
-      maxShadowOpacity: 0.5,
-      mobileScrollSupport: true
+  try {
+    if (pageFlip) {
+      pageFlip.destroy();
+      pageFlip = null;
     }
-  );
-  pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+
+    // 移动端统一单页模式（usePortrait），横版竖版画册在手机上都是一页一页翻
+    isSinglePage = size.isMobile;
+    pageFlip = new St.PageFlip(
+      document.getElementById('book'),
+      {
+        width: size.width,
+        height: size.height,
+        size: 'fixed',
+        showCover: true,
+        drawShadow: true,
+        flippingTime: 800,
+        usePortrait: isSinglePage,
+        maxShadowOpacity: 0.5,
+        mobileScrollSupport: true
+      }
+    );
+    pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+  } catch(err) {
+    lcWarn('initBook: 画册重建失败', err);
+    return;
+  }
   // 翻页完成自动更新页码
   pageFlip.on('flip', () => {
     updateNum();
@@ -270,6 +275,22 @@ function initBook() {
   });
   updateNum();
   preloadAround();
+}
+
+// 重建画册并恢复当前页（设备切换 / 窗口尺寸变化共用）
+function rebuildBook() {
+  const cur = pageFlip ? pageFlip.getCurrentPageIndex() : 0;
+  initBook();
+  if (pageFlip && cur > 0) {
+    // 稍等一拍再跳页，等 PageFlip 完成初始化布局
+    setTimeout(() => {
+      try {
+        pageFlip.turnToPage(Math.min(cur, pageFlip.getPageCount() - 1));
+        updateNum();
+        preloadAround();
+      } catch(err) { lcWarn('重建后恢复页码失败', err); }
+    }, 60);
+  }
 }
 
 function updateNum() {
@@ -393,6 +414,12 @@ window.addEventListener('message', (e) => {
     return;
   }
 
+  // 后台切换预览设备（PC/移动端）：按新视口尺寸显式重建（不依赖 iframe resize 事件）
+  if (d.type === 'lc-rebuild') {
+    rebuildBook();
+    return;
+  }
+
   if (d.type !== 'lc-config-update' || !d.config) return;
   CONFIG = d.config;
   BOOK_RATIO_W = CONFIG.bookRatio.w;
@@ -419,6 +446,6 @@ let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    initBook();
+    rebuildBook();
   }, 300);
 });

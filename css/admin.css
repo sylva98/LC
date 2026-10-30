@@ -697,18 +697,6 @@ input[type="checkbox"]:checked::after {
   height: 100%;
   border: none;
 }
-.preview-badge {
-  position: absolute;
-  top: 14px;
-  right: 152px;
-  background: rgba(0,0,0,0.6);
-  color: #fff;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  pointer-events: none;
-}
-
 /* 预览设备切换（PC / 移动端）：移动端模式通过收窄 iframe 视口尺寸实现，
    阅读器按容器宽度自适应（<600px 自动切单页），所见即真实移动端渲染 */
 .preview-device-toggle {

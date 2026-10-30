@@ -96,8 +96,8 @@ if (previewFrameEl) {
 }
 bindPreviewClose();
 
-// 预览设备切换：改变 iframe 视口宽度即可获得真实移动端渲染
-// （阅读器响应式：<600px 自动单页模式，resize 后自动重建）
+// 预览设备切换：改变 iframe 视口尺寸获得真实移动端渲染，
+// 并显式通知阅读器按新尺寸重建（不依赖 iframe resize 事件）
 function bindDeviceToggle() {
   const toggle = document.querySelector('.preview-device-toggle');
   if (!toggle) return;
@@ -106,6 +106,13 @@ function bindDeviceToggle() {
     if (!btn) return;
     toggle.querySelectorAll('.device-btn').forEach(b => b.classList.toggle('active', b === btn));
     previewFrameEl.classList.toggle('device-mobile', btn.dataset.mode === 'mobile');
+    if (previewFrameEl.contentWindow) {
+      try {
+        previewFrameEl.contentWindow.postMessage({ type: 'lc-rebuild' }, '*');
+      } catch(err) {
+        lcWarn('通知预览重建失败', err);
+      }
+    }
   });
 }
 bindDeviceToggle();
