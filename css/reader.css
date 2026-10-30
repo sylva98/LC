@@ -115,3 +115,66 @@ html, body {
   background: #1a1a1a; color: #fff; border-radius: 20px;
   text-decoration: none; font-size: 14px;
 }
+
+/* ==========================================
+ *  块 4：移动端（单页模式）书本化体验
+ *  书本近满屏 + 控制条悬浮化 + 纸张质感
+ * ========================================== */
+
+@media (max-width: 600px) {
+  /* 布局收边：书几乎贴满屏幕，底部预留悬浮控制条空间 */
+  .page-wrapper {
+    padding: 8px 8px 92px;
+  }
+
+  /* 控制条悬浮为半透明胶囊，叠在页面底部，不再挤占书本空间 */
+  .controls {
+    position: fixed;
+    left: 50%;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    margin-top: 0;
+    gap: 12px;
+    padding: 8px 16px;
+    background: rgba(15, 15, 20, 0.32);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 999px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    z-index: 60;
+  }
+  .controls button {
+    border: none;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  }
+  .page-num {
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  /* 书本质感：近满屏后加圆角与更实的投影，像拿在手里的一本册子 */
+  #book {
+    border-radius: 6px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  /* 书脊感：单页模式下给每页右缘加一道渐变暗边，模拟书页叠住的厚度 */
+  .page::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0));
+    pointer-events: none;
+    z-index: 10;
+  }
+  /* 封面（showCover 的第一页）书脊更厚一点 */
+  .page:first-child::after {
+    width: 18px;
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+  }
+}

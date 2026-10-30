@@ -220,11 +220,13 @@ let pageFlip = null;
 let isSinglePage = false; // 移动端单页模式标记（页码显示用）
 
 function calcPageSize() {
-  const availW = window.innerWidth - 60;
+  const isMobile = window.innerWidth < 600;
+  // 移动端：书几乎满屏（左右仅留 8px 呼吸边），底部固定预留悬浮控制条的空间
+  // PC 端：维持原有留白与双页布局
+  const availW = window.innerWidth - (isMobile ? 16 : 60);
   const controlsEl = document.querySelector('.controls');
-  const controlsH = controlsEl ? controlsEl.offsetHeight + 20 : 40;
-  const availH = window.innerHeight - 60 - controlsH;
-  const isMobile = availW < 600;
+  const controlsH = controlsEl && !isMobile ? controlsEl.offsetHeight + 20 : 0;
+  const availH = window.innerHeight - (isMobile ? 92 : 60) - controlsH;
   const ratioWH = BOOK_RATIO_W / BOOK_RATIO_H;
   let pageWidth = isMobile
     ? Math.min(availW, availH * ratioWH)
@@ -256,10 +258,11 @@ function initBook() {
         size: 'fixed',
         showCover: true,
         drawShadow: true,
-        flippingTime: 800,
+        flippingTime: 850,        // 翻页时长稍拉长，动作更柔更像纸页
         usePortrait: isSinglePage,
-        maxShadowOpacity: 0.5,
-        mobileScrollSupport: true
+        maxShadowOpacity: 0.55,   // 翻页时的褶皱阴影更明显，增强纸张感
+        mobileScrollSupport: true,
+        swipeDistance: 18         // 滑动翻页更灵敏（默认 25 偏钝）
       }
     );
     pageFlip.loadFromHTML(document.querySelectorAll('.page'));
