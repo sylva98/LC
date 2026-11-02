@@ -165,6 +165,17 @@
               显示首页图标
             </label>
           </div>
+          <div class="check-row check-row--mt">
+            <label class="check-label">
+              <input type="radio" name="coverStyle" id="coverHard" value="hard" onchange="updateConfig()" checked>
+              硬壳封面
+            </label>
+            <label class="check-label">
+              <input type="radio" name="coverStyle" id="coverSoft" value="soft" onchange="updateConfig()">
+              软页封面
+            </label>
+          </div>
+          <div class="hint">硬壳 = 封面封底像精装书壳，翻动时整页挺立；软页 = 像普通杂志内页一样柔翻</div>
         </div>
 
         <div class="form-row">

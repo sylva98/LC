@@ -59,12 +59,14 @@ async function loadConfig() {
 
 function buildPagesFromConfig(cfg) {
   const pages = [];
+  // 封面封底硬度：coverStyle='hard' 为精装硬壳（挺立翻动），'soft' 为普通软页；默认 hard 保持老画册行为
+  const coverHard = (cfg.coverStyle || 'hard') === 'hard';
   pages.push({
     type: cfg.cover.type,
     src: cfg.cover.image,
     html: cfg.cover.html,
     lqip: cfg.cover.lqip || '',
-    hard: true
+    hard: coverHard
   });
   cfg.pages.forEach(p => {
     pages.push({
@@ -79,7 +81,7 @@ function buildPagesFromConfig(cfg) {
     src: cfg.backCover.image,
     html: cfg.backCover.html,
     lqip: cfg.backCover.lqip || '',
-    hard: true
+    hard: coverHard
   });
   return pages;
 }
