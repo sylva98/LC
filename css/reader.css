@@ -48,6 +48,30 @@ html, body {
   background: linear-gradient(to right, rgba(0,0,0,0.15), transparent);
 }
 
+/* 硬壳封面/封底（coverStyle=hard）：模拟精装书脊
+   外缘隆起暗面 → 棱线高光 → 书脊凹槽（书脊与封板的接缝）→ 消隐
+   只跟随 data-density 出现在硬壳页上，软页封面无此效果 */
+.page[data-density="hard"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 18px;
+  z-index: 11;
+  pointer-events: none;
+  background: linear-gradient(to right,
+    rgba(0, 0, 0, 0.14) 0,
+    rgba(255, 255, 255, 0.18) 3px,
+    rgba(0, 0, 0, 0.03) 7px,
+    rgba(0, 0, 0, 0.16) 11px,
+    rgba(0, 0, 0, 0.02) 14px,
+    transparent 18px);
+}
+/* 硬壳页的书脊感由 ::before 承担（PC 双页模式装订线在左缘），
+   关闭通用装订线渐变，避免两层叠加过重 */
+.page[data-density="hard"].--right::after { display: none; }
+
 .page-image-only { background: #e5e5e5; }
 .page-image-only img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .page-img { opacity: 0; transition: opacity .5s ease, filter .5s ease; }
