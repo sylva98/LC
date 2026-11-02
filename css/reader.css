@@ -57,16 +57,18 @@ html, body {
   top: 0;
   bottom: 0;
   left: 0;
-  width: 18px;
+  /* 宽度由后台「书脊厚度」设置注入（--spine-w，px）；渐变断点用百分比，
+     任意宽度下高光棱线与凹槽位置等比缩放 */
+  width: var(--spine-w, 18px);
   z-index: 11;
   pointer-events: none;
   background: linear-gradient(to right,
     rgba(0, 0, 0, 0.14) 0,
-    rgba(255, 255, 255, 0.18) 3px,
-    rgba(0, 0, 0, 0.03) 7px,
-    rgba(0, 0, 0, 0.16) 11px,
-    rgba(0, 0, 0, 0.02) 14px,
-    transparent 18px);
+    rgba(255, 255, 255, 0.18) 16%,
+    rgba(0, 0, 0, 0.03) 38%,
+    rgba(0, 0, 0, 0.16) 60%,
+    rgba(0, 0, 0, 0.02) 78%,
+    transparent 100%);
 }
 /* 硬壳页的书脊感由 ::before 承担（PC 双页模式装订线在左缘），
    关闭通用装订线渐变，避免两层叠加过重 */

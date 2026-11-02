@@ -180,6 +180,19 @@
 
         <div class="form-row">
           <div class="form-group">
+            <label>书脊厚度（硬壳封面专用）</label>
+            <select id="spineWidth" onchange="updateConfig()">
+              <option value="12">薄 · 12px</option>
+              <option value="18" selected>适中 · 18px</option>
+              <option value="26">厚 · 26px</option>
+              <option value="36">特厚 · 36px</option>
+            </select>
+            <div class="hint">仅「硬壳封面」生效，控制封面左缘书脊带的宽度，按画册实际薄厚选择</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
             <label>分类（可选，相同分类自动分组）</label>
             <input type="text" id="bookCategory" list="categoryList" placeholder="输入分类名称，如：油画、摄影" oninput="updateConfig()">
             <datalist id="categoryList"></datalist>

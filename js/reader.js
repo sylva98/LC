@@ -202,6 +202,10 @@ function buildPages() {
     document.querySelector('.page-wrapper').insertBefore(bookEl, controls);
   }
   bookEl.innerHTML = '';
+  // 书脊厚度：后台「书脊厚度」设置（config.spineWidth，px），默认 18。
+  // 注意：page-flip 会用 style.cssText 整体重写每个 page 元素的行内样式，
+  // 变量必须挂在 #book 容器上（CSS 变量继承），挂在 page 上会被抹掉
+  bookEl.style.setProperty('--spine-w', ((CONFIG && CONFIG.spineWidth) || 18) + 'px');
   PAGES.forEach(p => {
     const div = document.createElement('div');
     div.className = 'page';

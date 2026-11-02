@@ -361,6 +361,7 @@ function render() {
   // 封面样式：hard=精装硬壳（默认），soft=普通软页
   document.getElementById('coverHard').checked = (config.coverStyle || 'hard') === 'hard';
   document.getElementById('coverSoft').checked = (config.coverStyle || 'hard') !== 'hard';
+  document.getElementById('spineWidth').value = String(config.spineWidth || 18);
   document.getElementById('bookCategory').value = config.category || '';
   document.getElementById('musicUrl').value = config.music?.url || '';
   document.getElementById('musicVolume').value = config.music?.volume || 0.5;
@@ -778,6 +779,7 @@ function updateConfig() {
   config.featured = document.getElementById('bookFeatured').checked;
   config.showIndexIcon = document.getElementById('showIndexIcon').checked;
   config.coverStyle = document.getElementById('coverHard').checked ? 'hard' : 'soft';
+  config.spineWidth = parseInt(document.getElementById('spineWidth').value, 10) || 18;
   config.category = document.getElementById('bookCategory').value.trim();
   config.music = {
     url: document.getElementById('musicUrl').value.trim(),

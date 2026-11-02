@@ -19,6 +19,7 @@ const DEFAULT_CONFIG = {
   bookRatio: { w: 420, h: 560 },
   showOn: { mobile: true, pc: true },
   coverStyle: 'hard',   // 封面封底样式：hard=精装硬壳 / soft=普通软页
+  spineWidth: 18,       // 硬壳书脊带宽度（px），仅 coverStyle=hard 时生效
   music: { url: '', volume: 0.5, startPage: 1 },
   cover: {
     type: 'image',
