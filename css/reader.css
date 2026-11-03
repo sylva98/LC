@@ -50,13 +50,14 @@ html, body {
 
 /* 硬壳封面/封底（coverStyle=hard）：模拟精装书脊
    外缘隆起暗面 → 棱线高光 → 书脊凹槽（书脊与封板的接缝）→ 消隐
+   封面书脊在左缘、封底在右缘（镜像，合上书本从背面看的方向）；
    只跟随 data-density 出现在硬壳页上，软页封面无此效果 */
-.page[data-density="hard"]::before {
+.page.page-spine-left::before,
+.page.page-spine-right::before {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 0;
   /* 宽度由后台「书脊厚度」设置注入（--spine-w，px）；渐变断点用百分比，
      任意宽度下高光棱线与凹槽位置等比缩放 */
   width: var(--spine-w, 18px);
@@ -69,6 +70,12 @@ html, body {
     rgba(0, 0, 0, 0.16) 60%,
     rgba(0, 0, 0, 0.02) 78%,
     transparent 100%);
+}
+.page.page-spine-left::before { left: 0; }
+/* 封底镜像：贴右缘并把渐变水平翻转，暗面在外缘 */
+.page.page-spine-right::before {
+  right: 0;
+  transform: scaleX(-1);
 }
 /* 硬壳页的书脊感由 ::before 承担（PC 双页模式装订线在左缘），
    关闭通用装订线渐变，避免两层叠加过重 */

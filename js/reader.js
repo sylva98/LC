@@ -66,7 +66,9 @@ function buildPagesFromConfig(cfg) {
     src: cfg.cover.image,
     html: cfg.cover.html,
     lqip: cfg.cover.lqip || '',
-    hard: coverHard
+    hard: coverHard,
+    // 书脊在封面左缘（合上的书正面看书脊在左）
+    spine: 'left'
   });
   cfg.pages.forEach(p => {
     pages.push({
@@ -81,7 +83,9 @@ function buildPagesFromConfig(cfg) {
     src: cfg.backCover.image,
     html: cfg.backCover.html,
     lqip: cfg.backCover.lqip || '',
-    hard: coverHard
+    hard: coverHard,
+    // 封底与封面镜像：合上看到封底时，书脊在右缘
+    spine: 'right'
   });
   return pages;
 }
@@ -210,6 +214,8 @@ function buildPages() {
     const div = document.createElement('div');
     div.className = 'page';
     if (p.hard) div.setAttribute('data-density', 'hard');
+    if (p.spine === 'left') div.className += ' page-spine-left';
+    if (p.spine === 'right') div.className += ' page-spine-right';
     if (p.type === 'image') {
       div.className += ' page-image-only';
       const thumb = p.lqip || '';
