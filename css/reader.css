@@ -29,9 +29,10 @@ html, body {
 }
 
 .page { background: #fff; overflow: hidden; position: relative; }
-/* 内页订口阴影（双页展开时模拟纸张在装订处的弯曲）：
-   贴缝一道最暗的折痕 → 纸面向外翻起时快速衰减的暗部 → 更远处一段缓坡余韵。
-   宽度用百分比随页面缩放（约页宽 15%，和实体书视觉比例一致）；
+/* 内页订口光照（双页展开时模拟纸张在装订处的弯曲受光）：
+   贴缝一道最暗的折痕 → 纸页弯起受光的亮面反光带 → 页面主体微微压暗、
+   越靠外缘越深（实体书摊开的光照渐变）。整个渐变铺满页宽，
+   断点为页宽百分比，任意尺寸下比例一致；
    首帧/末帧占位页会被 JS 加 no-gutter 类关闭，避免阴影浮在空白背景上 */
 .page.--left::after,
 .page.--right::after {
@@ -39,29 +40,32 @@ html, body {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 18%;
+  left: 0;
+  right: 0;
   pointer-events: none;
   z-index: 10;
 }
 .page.--left::after {
-  right: 0;
   background: linear-gradient(to left,
     rgba(0, 0, 0, 0.30) 0,
-    rgba(0, 0, 0, 0.17) 2.5%,
-    rgba(0, 0, 0, 0.09) 11%,
-    rgba(0, 0, 0, 0.045) 30%,
-    rgba(0, 0, 0, 0.018) 56%,
-    transparent 100%);
+    rgba(0, 0, 0, 0.14) 1.5%,
+    rgba(255, 255, 255, 0.10) 3.5%,
+    rgba(255, 255, 255, 0.17) 7%,
+    rgba(255, 255, 255, 0.06) 13%,
+    rgba(0, 0, 0, 0.01) 18%,
+    rgba(0, 0, 0, 0.03) 55%,
+    rgba(0, 0, 0, 0.055) 100%);
 }
 .page.--right::after {
-  left: 0;
   background: linear-gradient(to right,
     rgba(0, 0, 0, 0.30) 0,
-    rgba(0, 0, 0, 0.17) 2.5%,
-    rgba(0, 0, 0, 0.09) 11%,
-    rgba(0, 0, 0, 0.045) 30%,
-    rgba(0, 0, 0, 0.018) 56%,
-    transparent 100%);
+    rgba(0, 0, 0, 0.14) 1.5%,
+    rgba(255, 255, 255, 0.10) 3.5%,
+    rgba(255, 255, 255, 0.17) 7%,
+    rgba(255, 255, 255, 0.06) 13%,
+    rgba(0, 0, 0, 0.01) 18%,
+    rgba(0, 0, 0, 0.03) 55%,
+    rgba(0, 0, 0, 0.055) 100%);
 }
 /* 空白占位页（封面/封底独占时的另一半）不画订口阴影 */
 .page.no-gutter::after { display: none; }
