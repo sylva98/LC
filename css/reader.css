@@ -29,24 +29,45 @@ html, body {
 }
 
 .page { background: #fff; overflow: hidden; position: relative; }
+/* 内页订口阴影（双页展开时模拟纸张在装订处的弯曲）：
+   贴缝一道最暗的折痕 → 纸面向外翻起时快速衰减的暗部 → 更远处一段缓坡余韵。
+   宽度用百分比随页面缩放（约页宽 15%，和实体书视觉比例一致）；
+   首帧/末帧占位页会被 JS 加 no-gutter 类关闭，避免阴影浮在空白背景上 */
 .page.--left::after,
 .page.--right::after {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 30px;
+  width: 18%;
   pointer-events: none;
   z-index: 10;
 }
 .page.--left::after {
   right: 0;
-  background: linear-gradient(to left, rgba(0,0,0,0.15), transparent);
+  background: linear-gradient(to left,
+    rgba(0, 0, 0, 0.30) 0,
+    rgba(0, 0, 0, 0.17) 2.5%,
+    rgba(0, 0, 0, 0.09) 11%,
+    rgba(0, 0, 0, 0.045) 30%,
+    rgba(0, 0, 0, 0.018) 56%,
+    transparent 100%);
 }
 .page.--right::after {
   left: 0;
-  background: linear-gradient(to right, rgba(0,0,0,0.15), transparent);
+  background: linear-gradient(to right,
+    rgba(0, 0, 0, 0.30) 0,
+    rgba(0, 0, 0, 0.17) 2.5%,
+    rgba(0, 0, 0, 0.09) 11%,
+    rgba(0, 0, 0, 0.045) 30%,
+    rgba(0, 0, 0, 0.018) 56%,
+    transparent 100%);
 }
+/* 空白占位页（封面/封底独占时的另一半）不画订口阴影 */
+.page.no-gutter::after { display: none; }
+/* 移动端单页模式：页面也带 --left/--right 类，但没有装订线，不画阴影 */
+#book.single .page.--left::after,
+#book.single .page.--right::after { display: none; }
 
 /* 硬壳封面/封底（coverStyle=hard）：模拟精装书脊
    外缘隆起暗面 → 棱线高光 → 书脊凹槽（书脊与封板的接缝）→ 消隐

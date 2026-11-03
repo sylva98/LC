@@ -269,10 +269,12 @@ function initBook() {
   loadedFlags = {};   // 重建后重新按需加载（浏览器缓存保证快速）
   buildPages();
   pageImgs = Array.from(document.querySelectorAll('#book .page-img'));
+  // 单页模式标记挂到 #book 上：单页时 CSS 不画订口阴影（此时页面也带 --left/--right 类）
 
   try {
     // 移动端统一单页模式（usePortrait），横版竖版画册在手机上都是一页一页翻
     isSinglePage = size.isMobile;
+    document.getElementById('book').classList.toggle('single', isSinglePage);
     pageFlip = new St.PageFlip(
       document.getElementById('book'),
       {
@@ -345,12 +347,14 @@ function updateBlankPageVisibility(cur, total) {
   book.querySelectorAll('.page').forEach(p => {
     p.style.background = '';
     p.style.boxShadow = '';
+    p.classList.remove('no-gutter');
   });
   if (cur === 0) {
     const left = book.querySelector('.page.--left');
     if (left) {
       left.style.background = 'transparent';
       left.style.boxShadow = 'none';
+      left.classList.add('no-gutter');
     }
   }
   if (cur === total - 1) {
@@ -358,6 +362,7 @@ function updateBlankPageVisibility(cur, total) {
     if (right) {
       right.style.background = 'transparent';
       right.style.boxShadow = 'none';
+      right.classList.add('no-gutter');
     }
   }
 }
