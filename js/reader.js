@@ -78,6 +78,12 @@ function buildPagesFromConfig(cfg) {
       lqip: p.lqip || ''
     });
   });
+  // 双页配对规则（page-flip 实测）：内页数为奇数时，封底会与最后一个内容页
+  // 拼成对屏；内页数为偶数时封底自动单独成页（合书效果）。后台会在奇数时
+  // 自动补可编辑空白页，这里兜底处理没进过后台的老数据。
+  if (cfg.pages.length % 2 === 1) {
+    pages.push({ type: 'html', html: '', lqip: '' });
+  }
   pages.push({
     type: cfg.backCover.type,
     src: cfg.backCover.image,

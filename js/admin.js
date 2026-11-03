@@ -261,10 +261,24 @@ async function switchBook(bookId) {
     return;
   }
   config = data.config;
+  ensureBackCoverFiller(true);
   render();
   // 刷新预览
   const frame = document.getElementById('previewFrame');
   frame.src = 'book-ratio-adaptive.html?book=' + bookId;
+}
+
+// 封底独占一屏：page-flip 双页模式下内页数为奇数时，封底会与最后一个内容页
+// 拼成对屏（物理上不存在"翻开书看到封底贴着正文"）。此时自动补一页真实的
+// 空白页（HTML 类型，带 autoFiller 标记，可编辑内容、也可删除）。
+function ensureBackCoverFiller(fromLoad) {
+  if (!config || !Array.isArray(config.pages)) return false;
+  if (config.pages.length % 2 !== 1) return false;
+  config.pages.push({ type: 'html', html: '', autoFiller: true });
+  showToast(fromLoad
+    ? '内页数为奇数时封底会和内容页同屏，已自动补一页空白页（可编辑/删除）'
+    : '已自动补一页空白页，保证封底单独成页（可编辑/删除）');
+  return true;
 }
 
 async function newBook() {
@@ -407,7 +421,7 @@ function renderPages() {
     card.onmousedown = () => { jumpToPage(Math.floor((idx + 2) / 2)); };
     card.innerHTML = `
       <div class="page-card-header">
-        <div class="page-card-title">第 ${idx + 1} 页</div>
+        <div class="page-card-title">第 ${idx + 1} 页${page.autoFiller && !page.html ? ' <span style="font-size:11px;color:#6c5ce7;background:#f1eefd;border:1px solid #d8ccf7;border-radius:8px;padding:1px 7px;margin-left:6px;vertical-align:1px;">自动补充</span>' : ''}</div>
         <div class="page-card-actions">
           <button onclick="movePage(${idx}, -1)" title="上移">↑</button>
           <button onclick="movePage(${idx}, 1)" title="下移">↓</button>
@@ -483,6 +497,7 @@ function setBackType(type, save = true) {
 
 function addPage() {
   config.pages.push({ type: 'image', src: '' });
+  ensureBackCoverFiller(false);
   renderPages();
   updateConfig();
 }
@@ -490,6 +505,7 @@ function addPage() {
 // 在指定位置后面插入新页
 function insertPageAfter(idx) {
   config.pages.splice(idx + 1, 0, { type: 'image', src: '' });
+  ensureBackCoverFiller(false);
   renderPages();
   updateConfig();
 }
@@ -734,6 +750,10 @@ async function deleteMaterial(name) {
 
 function removePage(idx) {
   config.pages.splice(idx, 1);
+  // 删除后若内页为奇数，只提示不强补（避免用户删补页时被循环加回）
+  if (config.pages.length % 2 === 1) {
+    showToast('内页数为奇数，封底会和最后一页同屏；可再加一页避免');
+  }
   renderPages();
   updateConfig();
 }
