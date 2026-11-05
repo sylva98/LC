@@ -401,6 +401,26 @@ body {
   padding-bottom: 6px;
   border-bottom: 1px solid #333;
 }
+/* 可折叠分区标题（全局设置等） */
+.section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.section-toggle:hover { color: #ccc; }
+.toggle-arrow {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #888;
+  transition: transform 0.2s ease;
+}
+.section-toggle.open .toggle-arrow { transform: rotate(180deg); }
+.section-collapse { display: none; }
+.section-collapse.open { display: block; }
 
 .form-row {
   margin-bottom: 20px;

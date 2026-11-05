@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>画册后台管理</title>
   <script src="supabase.min.js"></script>
-  <script src="common.js"></script>
-  <link rel="stylesheet" href="common.css">
-  <link rel="stylesheet" href="css/admin.css">
+  <script src="common.js?v=20261105a"></script>
+  <link rel="stylesheet" href="common.css?v=20261105a">
+  <link rel="stylesheet" href="css/admin.css?v=20261105a">
 </head>
 <body>
 
@@ -107,9 +107,13 @@
 
     <div class="sidebar-body">
 
-      <!-- 全局设置 -->
+      <!-- 全局设置（可折叠：默认收起，状态记忆在本地） -->
       <div class="section">
-        <div class="section-title">全局设置</div>
+        <div class="section-title section-toggle" id="globalToggle" onclick="toggleGlobalSettings()">
+          <span>全局设置</span>
+          <span class="toggle-arrow" id="globalArrow"></span>
+        </div>
+        <div id="globalSettingsBody" class="section-collapse">
 
         <div class="form-row">
           <label>背景</label>
@@ -225,6 +229,8 @@
             <label class="field-note">页开始播放</label>
           </div>
         </div>
+
+        </div>
       </div>
 
       <!-- 封面 -->
@@ -315,7 +321,7 @@
 
   </div><!-- /viewEdit -->
 
-  <script src="js/admin.js"></script>
+  <script src="js/admin.js?v=20261105a"></script>
 
 <!-- 素材库弹窗 -->
 <div id="assetsModal" class="modal-overlay">

@@ -4,6 +4,25 @@
 // ==========================================
 
 // ==========================================
+//  全局设置折叠（默认收起，状态记忆在 localStorage）
+// ==========================================
+function toggleGlobalSettings() {
+  const body = document.getElementById('globalSettingsBody');
+  const title = document.getElementById('globalToggle');
+  const open = !body.classList.contains('open');
+  body.classList.toggle('open', open);
+  title.classList.toggle('open', open);
+  try { localStorage.setItem('lcGlobalSettingsOpen', open ? '1' : '0'); } catch(e) {}
+}
+function restoreGlobalSettings() {
+  let open = false;
+  try { open = localStorage.getItem('lcGlobalSettingsOpen') === '1'; } catch(e) {}
+  document.getElementById('globalSettingsBody').classList.toggle('open', open);
+  document.getElementById('globalToggle').classList.toggle('open', open);
+}
+restoreGlobalSettings();
+
+// ==========================================
 //  登录验证（Supabase）
 // ==========================================
 
