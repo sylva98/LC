@@ -205,14 +205,6 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group">
-            <label>分类（可选，相同分类自动分组）</label>
-            <input type="text" id="bookCategory" list="categoryList" placeholder="输入分类名称，如：油画、摄影" oninput="updateConfig()">
-            <datalist id="categoryList"></datalist>
-          </div>
-        </div>
-
-        <div class="form-row">
           <label>背景音乐（可选）</label>
           <div class="music-row">
             <input type="text" id="musicUrl" placeholder="粘贴mp3链接或上传" oninput="updateConfig()" class="input-flex">
@@ -230,6 +222,18 @@
           </div>
         </div>
 
+        </div>
+      </div>
+
+      <!-- 分类（画册属性，不属全局设置） -->
+      <div class="section">
+        <div class="section-title">分类</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>分类（可选，相同分类自动分组）</label>
+            <input type="text" id="bookCategory" list="categoryList" placeholder="输入分类名称，如：油画、摄影" oninput="updateConfig()">
+            <datalist id="categoryList"></datalist>
+          </div>
         </div>
       </div>
 
