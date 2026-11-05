@@ -402,6 +402,7 @@ function render() {
   document.getElementById('coverHard').checked = (config.coverStyle || 'hard') === 'hard';
   document.getElementById('coverSoft').checked = (config.coverStyle || 'hard') !== 'hard';
   document.getElementById('spineWidth').value = String(config.spineWidth || 18);
+  syncSpineRow();
   document.getElementById('bookCategory').value = config.category || '';
   document.getElementById('musicUrl').value = config.music?.url || '';
   document.getElementById('musicVolume').value = config.music?.volume || 0.5;
@@ -811,6 +812,12 @@ function setPageHtml(idx, html) {
 // ==========================================
 //  汇总更新
 // ==========================================
+// 书脊厚度只对硬壳封面有意义：选软页时整块隐藏，避免出现无效设置项
+function syncSpineRow() {
+  const hard = document.getElementById('coverHard').checked;
+  document.getElementById('spineRow').style.display = hard ? '' : 'none';
+}
+
 let updateTimer;
 function updateConfig() {
   // 从表单读回值
@@ -827,6 +834,7 @@ function updateConfig() {
   config.featured = document.getElementById('bookFeatured').checked;
   config.showIndexIcon = document.getElementById('showIndexIcon').checked;
   config.coverStyle = document.getElementById('coverHard').checked ? 'hard' : 'soft';
+  syncSpineRow();
   config.spineWidth = parseInt(document.getElementById('spineWidth').value, 10) || 18;
   config.category = document.getElementById('bookCategory').value.trim();
   config.music = {

@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>画册后台管理</title>
   <script src="supabase.min.js"></script>
-  <script src="common.js?v=20261105a"></script>
-  <link rel="stylesheet" href="common.css?v=20261105a">
-  <link rel="stylesheet" href="css/admin.css?v=20261105a">
+  <script src="common.js?v=20261105b"></script>
+  <link rel="stylesheet" href="common.css?v=20261105b">
+  <link rel="stylesheet" href="css/admin.css?v=20261105b">
 </head>
 <body>
 
@@ -191,7 +191,7 @@
           <div class="hint">硬壳 = 封面封底像精装书壳，翻动时整页挺立；软页 = 像普通杂志内页一样柔翻</div>
         </div>
 
-        <div class="form-row">
+        <div class="form-row" id="spineRow">
           <div class="form-group">
             <label>书脊厚度（硬壳封面专用）</label>
             <select id="spineWidth" onchange="updateConfig()">
@@ -325,7 +325,7 @@
 
   </div><!-- /viewEdit -->
 
-  <script src="js/admin.js?v=20261105a"></script>
+  <script src="js/admin.js?v=20261105b"></script>
 
 <!-- 素材库弹窗 -->
 <div id="assetsModal" class="modal-overlay">
