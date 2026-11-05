@@ -133,10 +133,18 @@ let CONFIG, BOOK_RATIO_W, BOOK_RATIO_H, PAGES, currentBookId = null;
 
 function applyBackground() {
   const bg = CONFIG.background || {};
-  if (bg.type === 'color') {
-    document.body.style.background = bg.color;
-  } else if (bg.type === 'image' && bg.image) {
-    document.body.style.background = `url(${bg.image}) center/cover no-repeat`;
+  const layer = document.getElementById('bgLayer');
+  const img = document.getElementById('bgImage');
+  // body 只负责兜底底色；背景图与光影统一交给 #bgLayer（独立层，不进翻页的层叠上下文）
+  document.body.style.background = bg.color || '#e8e8e8';
+  if (!layer || !img) return;
+  layer.style.setProperty('--bg-blur', (Number(bg.blur) || 0) + 'px');
+  layer.style.setProperty('--bg-dim', Number(bg.dim != null ? bg.dim : 0.06));
+  layer.style.setProperty('--bg-depth', Number(bg.depth != null ? bg.depth : 1));
+  if (bg.type === 'image' && bg.image) {
+    img.style.backgroundImage = 'url("' + bg.image + '")';
+  } else {
+    img.style.backgroundImage = 'none';
   }
 }
 
@@ -268,6 +276,8 @@ function initBook() {
 
   loadedFlags = {};   // 重建后重新按需加载（浏览器缓存保证快速）
   buildPages();
+  // 投影尺寸基准：单页宽度挂到 :root（page-flip 会重写 #book 的 style，挂在根元素最稳）
+  document.documentElement.style.setProperty('--pw', size.width + 'px');
   pageImgs = Array.from(document.querySelectorAll('#book .page-img'));
   // 单页模式标记挂到 #book 上：单页时 CSS 不画订口阴影（此时页面也带 --left/--right 类）
 

@@ -366,6 +366,13 @@ function render() {
   // 全局
   document.getElementById('bgColor').value = config.background.color;
   document.getElementById('bgImage').value = config.background.image;
+  // 背景虚化 / 压暗（老画册没有这两个字段时用默认值）
+  const bgBlur = config.background.blur != null ? config.background.blur : 0;
+  const bgDim = config.background.dim != null ? config.background.dim : 0.06;
+  document.getElementById('bgBlur').value = String(bgBlur);
+  document.getElementById('bgBlurText').innerText = String(bgBlur);
+  document.getElementById('bgDim').value = String(bgDim);
+  document.getElementById('bgDimText').innerText = String(bgDim);
   document.getElementById('ratioW').value = config.bookRatio.w;
   document.getElementById('ratioH').value = config.bookRatio.h;
   document.getElementById('showMobile').checked = config.showOn?.mobile !== false;
@@ -790,6 +797,8 @@ function updateConfig() {
   // 从表单读回值
   config.background.color = document.getElementById('bgColor').value;
   config.background.image = document.getElementById('bgImage').value.trim();
+  config.background.blur = parseInt(document.getElementById('bgBlur').value, 10) || 0;
+  config.background.dim = parseFloat(document.getElementById('bgDim').value) || 0;
   config.bookRatio.w = parseInt(document.getElementById('ratioW').value) || 420;
   config.bookRatio.h = parseInt(document.getElementById('ratioH').value) || 560;
   config.showOn = {

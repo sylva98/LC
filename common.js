@@ -14,7 +14,10 @@ const DEFAULT_CONFIG = {
   background: {
     type: 'color',
     color: '#e8e8e8',
-    image: ''
+    image: '',
+    blur: 0,      // 背景虚化 px（0~24）
+    dim: 0.06,    // 背景压暗（0~0.4），把背景推到主体后面
+    depth: 1      // 空间感渐变/暗角强度（0~1）
   },
   bookRatio: { w: 420, h: 560 },
   showOn: { mobile: true, pc: true },

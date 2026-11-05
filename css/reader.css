@@ -6,10 +6,14 @@
 html, body {
   overflow-x: hidden;
   overflow-y: auto;
-  background: #e8e8e8;
   font-family: "Helvetica Neue", Arial, sans-serif;
   -webkit-tap-highlight-color: transparent;
   height: 100%;
+}
+/* 注意：底色只能挂在 body（html 的背景会盖住 z-index:-1 的 #bgLayer，
+   这是 Chrome 的层叠规则）；body 的底色会传播到画布，#bgLayer 画在它上面 */
+body {
+  background: #e8e8e8;
 }
 
 .page-wrapper {
@@ -21,10 +25,67 @@ html, body {
   justify-content: center;
   min-height: 100vh;
 }
+/* ==========================================
+ *  背景层：把背景推到主体后面（图片 → 压暗 → 空间感渐变）
+ *  独立成层而不是直接铺在 body 上，后续光影预设可以往这一层叠，
+ *  且它不参与 page-flip 的 3D transform，翻页时不会闪
+ * ========================================== */
+#bgLayer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+#bgImage {
+  position: absolute;
+  inset: -64px;              /* 预留虚化溢出的余量，避免边缘发白 */
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: blur(var(--bg-blur, 0px));
+}
+/* 压暗：用户可调 0~0.4 */
+#bgLayer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: var(--bg-dim, 0.06);
+}
+/* 空间感 + 四角暗角：让背景有纵深，不至于平得像色卡 */
+#bgLayer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: var(--bg-depth, 1);
+  background:
+    linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.10) 0,
+      rgba(0, 0, 0, 0) 42%,
+      rgba(0, 0, 0, 0.06) 100%),
+    radial-gradient(115% 95% at 50% 45%,
+      rgba(0, 0, 0, 0) 40%,
+      rgba(0, 0, 0, 0.18) 100%);
+}
+
+/* ==========================================
+ *  书本投影：接触暗部 → 近场软影 → 远场环境影 → 四周环境光
+ *  三层叠加才有"书落在桌面上"的重量感；尺寸全部随单页宽度（--pw）缩放，
+ *  手机小页和 PC 大页的阴影比例一致
+ * ========================================== */
 #book {
   background: transparent;
   border-radius: 2px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  box-shadow:
+    /* 接触暗部：几乎不模糊的一线，书与桌面咬合的地方 */
+    0 calc(var(--pw, 420px) * 0.0024) calc(var(--pw, 420px) * 0.0048) rgba(0, 0, 0, 0.26),
+    /* 近场软影：书的厚度感 */
+    0 calc(var(--pw, 420px) * 0.012) calc(var(--pw, 420px) * 0.033) rgba(0, 0, 0, 0.14),
+    /* 远场环境影：书对周围环境的影响 */
+    0 calc(var(--pw, 420px) * 0.038) calc(var(--pw, 420px) * 0.105) rgba(0, 0, 0, 0.08),
+    /* 四周均匀环境光：避免只有下方有影造成的"贴纸感" */
+    0 0 calc(var(--pw, 420px) * 0.062) rgba(0, 0, 0, 0.05);
   margin: 0 auto;
 }
 
