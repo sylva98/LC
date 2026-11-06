@@ -1,0 +1,45 @@
+<!-- 封面模板：Brito 系列·一（图左上 + 右侧小字栏 + 超大衬线人名）
+     换图：把 .tp1-img 的 src 整段替换成你的图片地址（灰块是占位图）
+     换字：直接改各节点文字；换行用 <br> -->
+<style>
+  .tp1 {
+    position: absolute; inset: 0;
+    background: #f1ede5; overflow: hidden;
+    container-type: size;   /* cqw/cqh 相对模板自身，任意比例不散架 */
+    font-family: Didot, "Bodoni 72", "Bodoni MT", "Playfair Display", "Times New Roman", "Songti SC", serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tp1 .p1-img { position: absolute; left: 6.5%; top: 6.5%; width: 57%; height: 45%;
+                 object-fit: cover; display: block; }
+  .tp1 .p1-cat { position: absolute; left: 72%; top: 7%; margin: 0; font-size: 3cqw;
+                 line-height: 1.55; letter-spacing: .08em; font-weight: 400; color: #1c1a17; }
+  .tp1 .p1-desc { position: absolute; left: 72%; top: 16.5%; width: 21.5%; font-size: 1.08cqw;
+                  line-height: 1.75; color: #4a463f; text-align: justify; }
+  .tp1 .p1-name { position: absolute; left: 6.5%; top: 54.5%; margin: 0;
+                  font-size: min(12.8cqw, 10cqh); line-height: 1.05;
+                  letter-spacing: .015em; font-weight: 400; color: #14120f; }
+  .tp1 .p1-org { position: absolute; left: 6.5%; top: 77%; margin: 0; font-size: 1.85cqw;
+                 letter-spacing: .05em; font-weight: 400; color: #1c1a17; }
+  .tp1 .p1-tags { position: absolute; left: 6.5%; top: 81.5%; font-size: 1.12cqw;
+                  line-height: 1.65; color: #4a463f; }
+  .tp1 .p1-tags i { display: block; font-style: normal; height: .8em; }
+  .tp1 .p1-foot { position: absolute; left: 6.5%; right: 6.5%; top: 89.5%; display: flex; }
+  .tp1 .p1-foot div { font-size: 1.12cqw; line-height: 1.55; letter-spacing: .05em; color: #1c1a17; }
+  .tp1 .p1-foot div:nth-child(2) { margin-left: 24%; }
+  .tp1 .p1-foot div:nth-child(3) { margin-left: auto; }
+  .tp1 .p1-foot b { display: block; font-weight: 400; }
+</style>
+
+<div class="tp1">
+  <img class="p1-img" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='630' height='815'%3E%3Crect width='100%25' height='100%25' fill='%23d8d3c8'/%3E%3C/svg%3E" alt="">
+  <h2 class="p1-cat">SURREALIST<br>ART</h2>
+  <div class="p1-desc">She is a painter living and working in Florida. Her works demonstrate extraordinary imagination, or the interweaving of dreams and realities. Her latest works incorporate intuitive symbolism, capable of translating intangible emotions into tangible visual language.</div>
+  <h1 class="p1-name">JEANINE<br>BRITO</h1>
+  <div class="p1-org">MUSEUM OF MODERN ART</div>
+  <div class="p1-tags">Surrealist Artist<br>Oil Painting<i></i>Aesthetic Designs</div>
+  <div class="p1-foot">
+    <div><b>SEEDO</b>BRAND DESIGN</div>
+    <div><b>PRACTICE</b>ART AND DESIGN</div>
+    <div><b>EXHIBITION OF</b>SEEDO DESIGN WORKS</div>
+  </div>
+</div>

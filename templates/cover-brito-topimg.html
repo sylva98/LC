@@ -1,0 +1,41 @@
+<!-- 封面模板：Brito 系列·二（大图铺顶 + 白色衬线大字叠图）
+     换图：把 .tp2-img 的 src 整段替换成你的图片地址（深色图效果最好）
+     换字：直接改各节点文字；换行用 <br> -->
+<style>
+  .tp2 {
+    position: absolute; inset: 0;
+    background: #f1ede5; overflow: hidden;
+    container-type: size;
+    font-family: Didot, "Bodoni 72", "Bodoni MT", "Playfair Display", "Times New Roman", "Songti SC", serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tp2 .p2-img { position: absolute; left: 4%; top: 3.5%; width: 92%; height: 51%;
+                 object-fit: cover; display: block; }
+  .tp2 .p2-name { position: absolute; left: 0; top: 6%; width: 100%; margin: 0; text-align: center;
+                  font-size: 10.6cqw; line-height: 1.18; letter-spacing: .13em; font-weight: 400;
+                  color: #f4f0e8; z-index: 2; }
+  .tp2 .p2-row1 { position: absolute; left: 6.5%; right: 6.5%; top: 58.5%; display: flex;
+                  justify-content: space-between; font-size: min(2.35cqw, 2.2cqh);
+                  line-height: 1.5; letter-spacing: .07em; color: #1c1a17; }
+  .tp2 .p2-row1 .r { text-align: right; }
+  .tp2 .p2-row2 { position: absolute; left: 6.5%; right: 6.5%; top: 67%; display: flex;
+                  justify-content: space-between; font-size: 1.35cqw; line-height: 1.6; color: #4a463f; }
+  .tp2 .p2-row2 .r { text-align: right; }
+  .tp2 .p2-foot { position: absolute; left: 6.5%; right: 6.5%; top: 88.5%; display: flex; }
+  .tp2 .p2-foot div { font-size: 1.12cqw; line-height: 1.55; letter-spacing: .05em; color: #1c1a17; }
+  .tp2 .p2-foot div:nth-child(2) { margin-left: 24%; }
+  .tp2 .p2-foot div:nth-child(3) { margin-left: auto; text-align: right; }
+  .tp2 .p2-foot b { display: block; font-weight: 400; }
+</style>
+
+<div class="tp2">
+  <img class="p2-img" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='630' height='815'%3E%3Crect width='100%25' height='100%25' fill='%23d8d3c8'/%3E%3C/svg%3E" alt="">
+  <h1 class="p2-name">JEANINE<br>BRITO</h1>
+  <div class="p2-row1"><span>SURREALIST<br>ART</span><span class="r">MUSEUM OF MODERN ART</span></div>
+  <div class="p2-row2"><span>Aesthetic Designs</span><span class="r">Surrealist Artist<br>Oil Painting</span></div>
+  <div class="p2-foot">
+    <div><b>SEEDO</b>BRAND DESIGN</div>
+    <div><b>PRACTICE</b>ART AND DESIGN</div>
+    <div><b>EXHIBITION OF</b>SEEDO DESIGN WORKS</div>
+  </div>
+</div>

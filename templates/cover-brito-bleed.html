@@ -1,0 +1,35 @@
+<!-- 封面模板：Brito 系列·三（左上衬线大字名 + 右对齐信息栏 + 左下出血图）
+     换图：把 .tp3-img 的 src 整段替换成你的图片地址（灰块是占位图）
+     换字：直接改各节点文字；换行用 <br> -->
+<style>
+  .tp3 {
+    position: absolute; inset: 0;
+    background: #f1ede5; overflow: hidden;
+    container-type: size;
+    font-family: Didot, "Bodoni 72", "Bodoni MT", "Playfair Display", "Times New Roman", "Songti SC", serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tp3 .p3-name { position: absolute; left: 6.5%; top: 8%; margin: 0;
+                  font-size: min(11.2cqw, 14cqh); line-height: 1.08;
+                  letter-spacing: .015em; font-weight: 400; color: #14120f; }
+  .tp3 .p3-list { position: absolute; right: 6.5%; top: 10.5%; text-align: right; font-size: 1.5cqw;
+                  line-height: 2.15; color: #1c1a17; }
+  .tp3 .p3-brand { position: absolute; left: 6.5%; top: 47.5%; margin: 0;
+                   font-size: min(2.7cqw, 2.6cqh); line-height: 1.5;
+                   letter-spacing: .05em; font-weight: 400; color: #14120f; }
+  .tp3 .p3-desc { position: absolute; right: 6.5%; top: 47.5%; width: 31%; text-align: right;
+                  font-size: 1.12cqw; line-height: 1.7; color: #4a463f; }
+  .tp3 .p3-img { position: absolute; left: 0; top: 59.5%; width: 78%; height: 33.5%;
+                 object-fit: cover; display: block; }
+  .tp3 .p3-tail { position: absolute; right: 6.5%; top: 93.5%; margin: 0; text-align: right;
+                  font-size: min(1.85cqw, 1.8cqh); line-height: 1.5; letter-spacing: .05em; color: #14120f; }
+</style>
+
+<div class="tp3">
+  <h1 class="p3-name">JEANINE<br>BRITO</h1>
+  <div class="p3-list">Surrealist Artist<br>Oil Painting<br>Aesthetic Design<br>Exhibition of<br>Seedo Design Works<br>Museum of Modern Art</div>
+  <div class="p3-brand">SEEDO<br>BRAND DESIGN</div>
+  <div class="p3-desc">Her works demonstrate extraordinary imagination, or the interweaving of dreams and realities. Her latest works incorporate intuitive symbolism, capable of translating intangible emotions into tangible visual language.</div>
+  <img class="p3-img" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='630' height='815'%3E%3Crect width='100%25' height='100%25' fill='%23d8d3c8'/%3E%3C/svg%3E" alt="">
+  <div class="p3-tail">PRACTICE<br>ART AND DESIGN</div>
+</div>
