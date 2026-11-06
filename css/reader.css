@@ -101,8 +101,9 @@ body {
   z-index: -1;   /* 只画阴影不占画面，且始终在书页层之下 */
   background: transparent;
   opacity: 1;
-  /* 淡入延迟：空半区的纸约在翻页前 1/4 时段才落位，提前淡入会描出透明框 */
-  transition: opacity .38s ease .2s;
+  /* 淡入延迟：空半区的纸约在翻页中段（~460ms）才落位，阴影等纸基本落定后
+     再快速出现——否则"影已现、纸未到"的窗口里空半区会被描出透明框 */
+  transition: opacity .25s ease .42s;
   box-shadow:
     /* 接触暗部：几乎不模糊的一线，书与桌面咬合的地方 */
     0 calc(var(--pw, 420px) * 0.0024) calc(var(--pw, 420px) * 0.0048) rgba(0, 0, 0, 0.26),
@@ -127,8 +128,9 @@ body {
   z-index: -1;
   background: transparent;
   opacity: 0;
-  /* 翻出封面/封底时的渐隐稍延迟，与整框层交叉衔接 */
-  transition: opacity .38s ease .15s;
+  /* 翻出封面/封底时的渐隐放慢、延迟到整框层开始接管之后，
+     交叉期间有页那一侧的阴影强度衔接平滑 */
+  transition: opacity .3s ease .38s;
   box-shadow:
     0 calc(var(--pw, 420px) * 0.0024) calc(var(--pw, 420px) * 0.0048) rgba(0, 0, 0, 0.26),
     0 calc(var(--pw, 420px) * 0.012) calc(var(--pw, 420px) * 0.033) rgba(0, 0, 0, 0.14),
