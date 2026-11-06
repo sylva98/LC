@@ -545,18 +545,21 @@ function openHtmlEditor(idx) {
   editingPageIdx = idx;
   document.getElementById('htmlEditor').value = config.pages[idx].html || '';
   document.getElementById('htmlModal').style.display = 'flex';
+  renderHtmlPreview();
   refreshHtmlTplList();
 }
 function openCoverHtmlEditor() {
   editingType = 'cover';
   document.getElementById('htmlEditor').value = config.cover.html || '';
   document.getElementById('htmlModal').style.display = 'flex';
+  renderHtmlPreview();
   refreshHtmlTplList();
 }
 function openBackHtmlEditor() {
   editingType = 'back';
   document.getElementById('htmlEditor').value = config.backCover.html || '';
   document.getElementById('htmlModal').style.display = 'flex';
+  renderHtmlPreview();
   refreshHtmlTplList();
 }
 function closeHtmlEditor() {
@@ -688,9 +691,9 @@ function tplPreviewChanged() {
   clearTimeout(tplPreviewTimer);
   tplPreviewTimer = setTimeout(renderTplPreview, 300);
 }
-function renderTplPreview() {
-  const fit = document.getElementById('tplPreviewFit');
-  const page = document.getElementById('tplPreviewPage');
+function renderPagePreview(fitId, pageId, html) {
+  const fit = document.getElementById(fitId);
+  const page = document.getElementById(pageId);
   if (!fit || !page) return;
   const br = (config && config.bookRatio) || { w: 420, h: 560 };
   const stage = fit.parentElement;
@@ -701,11 +704,23 @@ function renderTplPreview() {
   page.style.width = br.w + 'px';
   page.style.height = br.h + 'px';
   page.style.transform = 'scale(' + scale + ')';
-  page.innerHTML = document.getElementById('tplHtml').value || '';
+  page.innerHTML = html || '';
+}
+function renderTplPreview() {
+  renderPagePreview('tplPreviewFit', 'tplPreviewPage', document.getElementById('tplHtml').value);
+}
+// ---- HTML 内容编辑弹窗（封面/内页/封底）实时预览 ----
+let htmlPreviewTimer = null;
+function htmlPreviewChanged() {
+  clearTimeout(htmlPreviewTimer);
+  htmlPreviewTimer = setTimeout(renderHtmlPreview, 300);
+}
+function renderHtmlPreview() {
+  renderPagePreview('htmlPreviewFit', 'htmlPreviewPage', document.getElementById('htmlEditor').value);
 }
 window.addEventListener('resize', () => {
-  const m = document.getElementById('tplEditorModal');
-  if (m && m.style.display === 'flex') renderTplPreview();
+  if (document.getElementById('tplEditorModal').style.display === 'flex') renderTplPreview();
+  if (document.getElementById('htmlModal').style.display === 'flex') renderHtmlPreview();
 });
 function closeTplEditor() {
   document.getElementById('tplEditorModal').style.display = 'none';
@@ -750,6 +765,7 @@ function applyTpl(id) {
   const tpl = tplList.find(t => t.id === id);
   if (!tpl) return;
   document.getElementById('htmlEditor').value = tpl.html;
+  renderHtmlPreview();
 }
 
 // 图片库

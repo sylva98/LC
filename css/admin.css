@@ -856,7 +856,7 @@ input[type="checkbox"]:checked::after {
      否则 cqw 退化成相对视口，字号全部爆表 */
   container-type: inline-size;
 }
-#htmlModal .modal-box { max-width: 600px; }
+#htmlModal .modal-box { max-width: 1040px; width: 94%; max-height: 84vh; }
 #changePassModal .modal-box { max-width: 360px; }
 #linksModal .modal-box { max-width: 600px; }
 .modal-toolbar {

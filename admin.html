@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>画册后台管理</title>
   <script src="supabase.min.js"></script>
-  <script src="common.js?v=20261106n"></script>
-  <link rel="stylesheet" href="common.css?v=20261106n">
-  <link rel="stylesheet" href="css/admin.css?v=20261106n">
+  <script src="common.js?v=20261106o"></script>
+  <link rel="stylesheet" href="common.css?v=20261106o">
+  <link rel="stylesheet" href="css/admin.css?v=20261106o">
 </head>
 <body>
 
@@ -325,7 +325,7 @@
 
   </div><!-- /viewEdit -->
 
-  <script src="js/admin.js?v=20261106n"></script>
+  <script src="js/admin.js?v=20261106o"></script>
 
 <!-- 素材库弹窗 -->
 <div id="assetsModal" class="modal-overlay">
@@ -400,10 +400,22 @@
       <div class="html-tpl-hint">套用模板（点击直接覆盖下方内容）</div>
       <div id="htmlTplList" class="tpl-chip-row"></div>
     </div>
-    <textarea id="htmlEditor" class="modal-textarea"></textarea>
-    <div class="modal-actions">
-      <button onclick="closeHtmlEditor()" class="btn-muted">取消</button>
-      <button onclick="saveHtmlEditor()" class="btn-accent">确认保存</button>
+    <div class="tpl-editor-body">
+      <div class="tpl-editor-left">
+        <textarea id="htmlEditor" class="modal-textarea" oninput="htmlPreviewChanged()"></textarea>
+        <div class="modal-actions">
+          <button onclick="closeHtmlEditor()" class="btn-muted">取消</button>
+          <button onclick="saveHtmlEditor()" class="btn-accent">确认保存</button>
+        </div>
+      </div>
+      <div class="tpl-editor-preview">
+        <div class="tpl-editor-preview-head">实时预览<span class="tpl-editor-preview-note">按画册比例</span></div>
+        <div class="tpl-editor-preview-stage">
+          <div class="tpl-editor-preview-fit" id="htmlPreviewFit">
+            <div class="tpl-editor-preview-page" id="htmlPreviewPage"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
