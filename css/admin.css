@@ -997,6 +997,24 @@ input[type="checkbox"]:checked::after {
 }
 .tpl-item-btn--danger { color: #e74c3c; }
 
+/* 模板预览小图：内部按画册比例真实尺寸渲染，transform 缩放进框 */
+.tpl-item-thumb {
+  position: relative;
+  width: 56px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #efede6;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.tpl-item-thumb-page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
 .material-item {
   background: #22223a;
   border-radius: 8px;

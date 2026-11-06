@@ -604,6 +604,7 @@ async function loadTemplates() {
 
 function openAssets() {
   document.getElementById('assetsModal').style.display = 'flex';
+  loadTemplates();          // 每次打开都拉最新列表（含预览小图渲染）
   switchAssetsTab(assetsTab || 'tpl');
   switchTplCat(tplCategory);
 }
@@ -651,10 +652,24 @@ function renderTplList() {
   }
   box.innerHTML = list.map(t => `
     <div class="tpl-item">
+      <div class="tpl-item-thumb"><div class="tpl-item-thumb-page"></div></div>
       <div class="tpl-item-name">${t.name}</div>
       <button onclick="openTplEditor('${t.id}')" class="tpl-item-btn">编辑</button>
       <button onclick="deleteTpl('${t.id}')" class="tpl-item-btn tpl-item-btn--danger">删除</button>
     </div>`).join('');
+  // 预览小图：按画册比例的真实尺寸渲染模板，再整体缩放进缩略框
+  const br = (config && config.bookRatio) || { w: 420, h: 560 };
+  const THUMB_W = 56;
+  box.querySelectorAll('.tpl-item').forEach((el, i) => {
+    const thumb = el.querySelector('.tpl-item-thumb');
+    const page = el.querySelector('.tpl-item-thumb-page');
+    if (!thumb || !page) return;
+    thumb.style.height = Math.round(THUMB_W * br.h / br.w) + 'px';
+    page.style.width = br.w + 'px';
+    page.style.height = br.h + 'px';
+    page.style.transform = 'scale(' + (THUMB_W / br.w) + ')';
+    page.innerHTML = list[i].html || '';
+  });
 }
 
 function openTplEditor(id) {
