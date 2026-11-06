@@ -996,6 +996,17 @@ input[type="checkbox"]:checked::after {
   font-size: 12px;
 }
 .tpl-item-btn--danger { color: #e74c3c; }
+.tpl-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #a29bfe;
+  background: rgba(108, 92, 231, 0.18);
+  border-radius: 4px;
+  vertical-align: 1px;
+}
 
 /* 模板预览小图：内部按画册比例真实尺寸渲染，transform 缩放进框 */
 .tpl-item-thumb {

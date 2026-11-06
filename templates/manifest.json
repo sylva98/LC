@@ -1,0 +1,8 @@
+{
+  "cover": [
+    { "file": "cover-art-in-the-making.html", "name": "封面 - Art in the Making" },
+    { "file": "cover-brito-leftimg.html", "name": "封面 - Brito 图左上" },
+    { "file": "cover-brito-topimg.html", "name": "封面 - Brito 大图铺顶" },
+    { "file": "cover-brito-bleed.html", "name": "封面 - Brito 出血图" }
+  ]
+}
