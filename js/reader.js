@@ -240,6 +240,15 @@ function buildPages() {
     }
     bookEl.appendChild(div);
   });
+  // 半区投影层（封面/封底独占一屏时只给有页面的那一半投影）。
+  // 必须是真实元素而非伪元素：伪元素的 left 定位跳变无法与 opacity 过渡解耦，
+  // 翻页开始瞬间会把阴影瞬移到还没纸的空半区，描出"透明框"（见 reader.css 注释）。
+  // page-flip 只收集 .page 元素并把它们移进自己的 wrapper，这两个 div 不会被动
+  ['left', 'right'].forEach(side => {
+    const s = document.createElement('div');
+    s.className = 'half-shadow half-shadow--' + side;
+    bookEl.appendChild(s);
+  });
 }
 
 let pageFlip = null;

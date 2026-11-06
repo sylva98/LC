@@ -81,22 +81,28 @@ body {
   margin: 0 auto;
 }
 
-/* 书本投影分两层做交叉渐隐（而非几何滑移）：
-   ::before = 整框投影，::after = 半区投影；封面/封底独占一屏时
-   整框层淡出、半区层淡入。两层透明度叠加使"有页面那一半"的阴影
-   强度几乎恒定，只有空半区的阴影渐隐——符合纸页抬离时阴影退去的观感。
-   翻页开始时即按方向预判目标页切换（见 reader.js anticipateHalfShadow） */
-#book::before,
-#book::after {
+/* 书本投影分层：
+   ::before = 整框投影（内页跨页时显示）
+   .half-shadow--left/right = 半区投影（封面/封底独占一屏时只给有页面的那一半）
+   半区层必须用真实元素：伪元素的 left 跳变无法与 opacity 过渡解耦，
+   翻页开始瞬间会把阴影"瞬移"到还没纸的空半区，描出透明框。
+   翻出封面/封底时整框层延迟淡入（等纸张落进空半区再出现），
+   半区层稍延迟淡出——交叉期间有页那一侧的阴影强度近似恒定。
+   翻向封面/封底时（lc-half 类加回）整框层立即淡出、半区层立即淡入，
+   阴影随纸页抬离同步退去。翻页开始时的方向预判见 reader.js anticipateHalfShadow */
+#book::before {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
+  width: 100%;
   pointer-events: none;
   z-index: -1;   /* 只画阴影不占画面，且始终在书页层之下 */
   background: transparent;
-  transition: opacity .38s ease;
+  opacity: 1;
+  /* 淡入延迟：空半区的纸约在翻页前 1/4 时段才落位，提前淡入会描出透明框 */
+  transition: opacity .38s ease .2s;
   box-shadow:
     /* 接触暗部：几乎不模糊的一线，书与桌面咬合的地方 */
     0 calc(var(--pw, 420px) * 0.0024) calc(var(--pw, 420px) * 0.0048) rgba(0, 0, 0, 0.26),
@@ -107,14 +113,35 @@ body {
     /* 四周均匀环境光：避免只有下方有影造成的"贴纸感" */
     0 0 calc(var(--pw, 420px) * 0.062) rgba(0, 0, 0, 0.05);
 }
-#book::before { width: 100%; opacity: 1; }
-#book::after { width: 50%; opacity: 0; }
-/* 封面独占：页在右半，整框层淡出、右半区层淡入 */
-#book.lc-half--right::before { opacity: 0; }
-#book.lc-half--right::after { left: 50%; opacity: 1; }
-/* 封底独占：页在左半 */
-#book.lc-half--left::before { opacity: 0; }
-#book.lc-half--left::after { left: 0; opacity: 1; }
+/* 翻向封面/封底：整框阴影立即随纸页离开而渐隐（无延迟） */
+#book.lc-half--right::before,
+#book.lc-half--left::before { opacity: 0; transition: opacity .38s ease; }
+
+/* 半区投影层（由 buildPages 插入真实 div） */
+.half-shadow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  pointer-events: none;
+  z-index: -1;
+  background: transparent;
+  opacity: 0;
+  /* 翻出封面/封底时的渐隐稍延迟，与整框层交叉衔接 */
+  transition: opacity .38s ease .15s;
+  box-shadow:
+    0 calc(var(--pw, 420px) * 0.0024) calc(var(--pw, 420px) * 0.0048) rgba(0, 0, 0, 0.26),
+    0 calc(var(--pw, 420px) * 0.012) calc(var(--pw, 420px) * 0.033) rgba(0, 0, 0, 0.14),
+    0 calc(var(--pw, 420px) * 0.038) calc(var(--pw, 420px) * 0.105) rgba(0, 0, 0, 0.08),
+    0 0 calc(var(--pw, 420px) * 0.062) rgba(0, 0, 0, 0.05);
+}
+.half-shadow--right { left: 50%; }
+.half-shadow--left { left: 0; }
+/* 封面独占：页在右半；封底独占：页在左半。渐显立即开始 */
+#book.lc-half--right .half-shadow--right { opacity: 1; transition: opacity .38s ease; }
+#book.lc-half--left .half-shadow--left { opacity: 1; transition: opacity .38s ease; }
+/* 单页模式（移动端）书本只有一页宽，不画半区阴影 */
+#book.single .half-shadow { display: none; }
 
 .page { background: #fff; overflow: hidden; position: relative; }
 /* 内页订口光照（双页展开时模拟纸张在装订处的弯曲受光）：
