@@ -359,21 +359,25 @@ function updateBlankPageVisibility(cur, total) {
     p.style.boxShadow = '';
     p.classList.remove('no-gutter');
   });
-  if (cur === 0) {
+  // 封面/封底独占一屏时，空半区不画整框阴影（改由 CSS 半区伪元素接管）
+  book.classList.remove('lc-half', 'lc-half--left', 'lc-half--right');
+  if (cur === 0 && !isSinglePage) {
     const left = book.querySelector('.page.--left');
     if (left) {
       left.style.background = 'transparent';
       left.style.boxShadow = 'none';
       left.classList.add('no-gutter');
     }
+    book.classList.add('lc-half', 'lc-half--right');
   }
-  if (cur === total - 1) {
+  if (cur === total - 1 && !isSinglePage) {
     const right = book.querySelector('.page.--right');
     if (right) {
       right.style.background = 'transparent';
       right.style.boxShadow = 'none';
       right.classList.add('no-gutter');
     }
+    book.classList.add('lc-half', 'lc-half--left');
   }
 }
 

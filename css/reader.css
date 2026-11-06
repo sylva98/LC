@@ -89,6 +89,28 @@ body {
   margin: 0 auto;
 }
 
+/* 封面/封底独占一屏时（双页模式下另一半是空舞台）：
+   整框阴影会把空半区描成"一页空白页"，必须关掉，
+   改由伪元素只给有页面的那一半画同样的投影，空半区融入背景 */
+#book.lc-half { box-shadow: none; }
+#book.lc-half::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  pointer-events: none;
+  z-index: -1;   /* 只画阴影不占画面，且始终在书页层之下 */
+  background: transparent;
+  box-shadow:
+    0 calc(var(--pw, 420px) * 0.0024) calc(var(--pw, 420px) * 0.0048) rgba(0, 0, 0, 0.26),
+    0 calc(var(--pw, 420px) * 0.012) calc(var(--pw, 420px) * 0.033) rgba(0, 0, 0, 0.14),
+    0 calc(var(--pw, 420px) * 0.038) calc(var(--pw, 420px) * 0.105) rgba(0, 0, 0, 0.08),
+    0 0 calc(var(--pw, 420px) * 0.062) rgba(0, 0, 0, 0.05);
+}
+#book.lc-half.lc-half--right::before { left: 50%; }  /* 封面独占：页在右半 */
+#book.lc-half.lc-half--left::before { left: 0; }     /* 封底独占：页在左半 */
+
 .page { background: #fff; overflow: hidden; position: relative; }
 /* 内页订口光照（双页展开时模拟纸张在装订处的弯曲受光）：
    贴缝一道最暗的折痕 → 纸页弯起受光的亮面反光带 → 页面主体微微压暗、
