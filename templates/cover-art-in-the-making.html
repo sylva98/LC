@@ -1,0 +1,57 @@
+<!-- ==========================================
+     封面模板：Art in the Making 式 v2（按参考图实测比例）
+     暖白底 + 贴右瘦长图 + 珊瑚红大字标题叠压图片右上
+     布局实测：照片 left37% top8.5% 宽63% 高81.5%（贴右缘），
+     标题 54%→92%，作者名叠照片下部（左侧跨照片左缘）
+     自适应：横向随页宽（cqw）、纵向随页高（%）
+     换图：把 .tm-photo 的 src 改成你的图片地址即可
+     ========================================== -->
+<style>
+  .tpl-aim {
+    position: absolute; inset: 0;
+    background: #efede6;
+    container-type: inline-size;   /* 让 cqw 相对模板自身宽度，缩略图/预览也按比例缩放 */
+    overflow: hidden;
+  }
+  .tpl-aim-in {
+    position: absolute; inset: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tpl-aim .tm-photo {
+    position: absolute; left: 37%; top: 8.5%; width: 63%; height: 81.5%;
+    object-fit: cover; display: block;
+  }
+  .tpl-aim .tm-title {
+    position: absolute; left: 54%; top: 4.5%; margin: 0; z-index: 2;
+    color: #f2674d; font-size: 9cqw; line-height: .98;
+    font-weight: 700; letter-spacing: -.015em;
+  }
+  .tpl-aim .tm-sub {
+    position: absolute; left: 22.5%; top: 12.5%; z-index: 2;
+    color: #f2674d; font-size: 2.2cqw; line-height: 1.42; font-weight: 400;
+  }
+  .tpl-aim .tm-a1 {
+    position: absolute; left: 28%; top: 81%; z-index: 2;
+    color: #f2674d; font-size: 2.1cqw; font-weight: 700; letter-spacing: .05em;
+  }
+  .tpl-aim .tm-a2 {
+    position: absolute; left: 57%; top: 81%; z-index: 2;
+    color: #f2674d; font-size: 2.1cqw; font-weight: 700; letter-spacing: .05em;
+  }
+  .tpl-aim .tm-pub {
+    position: absolute; left: 19.5%; top: 92%;
+    color: #8f978d; font-size: 3cqw; font-weight: 700; letter-spacing: .01em;
+  }
+</style>
+
+<div class="tpl-aim">
+  <div class="tpl-aim-in">
+    <img class="tm-photo" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='630' height='815'%3E%3Crect width='100%25' height='100%25' fill='%23d8d3c8'/%3E%3C/svg%3E" alt="">
+    <div class="tm-sub">Artists and their<br>Materials from the Studio<br>to Crowdsourcing</div>
+    <h1 class="tm-title">Art in the<br>Making</h1>
+    <span class="tm-a1">GLENN ADAMSON</span>
+    <span class="tm-a2">JULIA BRYAN-WILSON</span>
+    <div class="tm-pub">Thames &amp; Hudson</div>
+  </div>
+</div>
