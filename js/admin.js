@@ -595,7 +595,7 @@ const MATERIAL_BUCKET = 'materials';
 // ---- 内置模板（随站点发布，templates/manifest.json 登记）----
 // 说明：book_templates 表对匿名身份只读，所以内置模板直接从静态文件加载，
 // 与数据库里用户自建的模板合并显示（内置的不可删除，可复制后另存）。
-const BUILTIN_TPL_VER = '20261106i';
+const BUILTIN_TPL_VER = '20261106k';
 let builtinTpls = null;
 
 async function loadBuiltinTemplates() {
@@ -634,8 +634,32 @@ async function loadTemplates() {
     .select('id, name, category, html')
     .order('created_at', { ascending: true });
   if (error) lcWarn('loadTemplates', error);
-  tplList = builtins.concat(error ? [] : (data || []));
+  const dbTpls = error ? [] : (data || []);
+  // 已经导入到数据库的同名模板不再重复显示内置那份
+  const dbKeys = new Set(dbTpls.map(t => t.category + '|' + t.name));
+  const restBuiltins = builtins.filter(t => !dbKeys.has(t.category + '|' + t.name));
+  tplList = restBuiltins.concat(dbTpls);
+  const btn = document.getElementById('btnImportBuiltin');
+  if (btn) btn.style.display = restBuiltins.length ? '' : 'none';
   renderTplList();
+}
+
+// 一键把内置模板写入数据库，变成可编辑/可删除的“我的模板”
+async function importBuiltinTemplates() {
+  const builtins = await loadBuiltinTemplates();
+  if (!builtins.length) { alert('没有可导入的内置模板'); return; }
+  if (!confirm(`把 ${builtins.length} 款内置模板导入为你的模板？导入后可自由编辑、删除。`)) return;
+  const rows = builtins.map(t => ({ name: t.name, category: t.category, html: t.html }));
+  const { error } = await supabase.from('book_templates').insert(rows);
+  if (error) {
+    const msg = (error.code === '42501' || /row-level security/i.test(error.message))
+      ? '当前登录账号没有模板写入权限（数据库 RLS 限制）。\n可先用内置版本（勾选模板胶囊直接套用），或到 Supabase 控制台为 book_templates 表开启已登录用户的插入策略。'
+      : error.message;
+    alert('导入失败：' + msg);
+    return;
+  }
+  await loadTemplates();
+  alert('导入完成，模板已进入你的模板库');
 }
 
 function openAssets() {

@@ -996,6 +996,14 @@ input[type="checkbox"]:checked::after {
   font-size: 12px;
 }
 .tpl-item-btn--danger { color: #e74c3c; }
+.btn-quiet {
+  background: #2a2a3c;
+  border: 1px solid #3d3d55;
+  color: #bbb;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-quiet:hover { color: #fff; border-color: #6c5ce7; }
 .tpl-badge {
   display: inline-block;
   margin-left: 6px;
