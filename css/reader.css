@@ -4,8 +4,9 @@
  * ========================================== */
 
 html, body {
-  overflow-x: hidden;
-  overflow-y: auto;
+  /* 阅读器全屏体验：任何情况（含翻页动画中翻动页 3D 超出视口）都不出滚动条。
+     之前 overflow-y:auto 时，翻页动画瞬间撑高 document 会顶出滚动条 */
+  overflow: hidden;
   font-family: "Helvetica Neue", Arial, sans-serif;
   -webkit-tap-highlight-color: transparent;
   height: 100%;
@@ -17,6 +18,7 @@ body {
 }
 
 .page-wrapper {
+  box-sizing: border-box;  /* padding 计入 min-height，避免 100vh+40px 溢出视口 */
   padding: 20px;
   margin: 0 auto;
   display: flex;
@@ -24,6 +26,7 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  min-height: 100dvh;  /* 移动端动态视口：地址栏收放时按真实可视高度居中 */
 }
 /* ==========================================
  *  背景层：把背景推到主体后面（图片 → 压暗 → 空间感渐变）
