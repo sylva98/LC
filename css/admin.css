@@ -852,6 +852,9 @@ input[type="checkbox"]:checked::after {
   overflow: hidden;
   background: #efede6;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  /* 与阅读器 .page-html-content 一致：让模板里的 cqw 相对页面宽度，
+     否则 cqw 退化成相对视口，字号全部爆表 */
+  container-type: inline-size;
 }
 #htmlModal .modal-box { max-width: 600px; }
 #changePassModal .modal-box { max-width: 360px; }
@@ -1028,25 +1031,6 @@ input[type="checkbox"]:checked::after {
   font-size: 12px;
 }
 .tpl-item-btn--danger { color: #e74c3c; }
-.btn-quiet {
-  background: #2a2a3c;
-  border: 1px solid #3d3d55;
-  color: #bbb;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.btn-quiet:hover { color: #fff; border-color: #6c5ce7; }
-.tpl-badge {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 1px 5px;
-  font-size: 10px;
-  line-height: 1.5;
-  color: #a29bfe;
-  background: rgba(108, 92, 231, 0.18);
-  border-radius: 4px;
-  vertical-align: 1px;
-}
 
 /* 模板预览小图：内部按画册比例真实尺寸渲染，transform 缩放进框 */
 .tpl-item-thumb {
@@ -1064,6 +1048,7 @@ input[type="checkbox"]:checked::after {
   left: 0;
   transform-origin: 0 0;
   pointer-events: none;
+  container-type: inline-size;  /* 同阅读器：cqw 相对页面宽度 */
 }
 
 .material-item {

@@ -592,74 +592,14 @@ let assetsTab = 'tpl';
 let editingTplId = null;
 const MATERIAL_BUCKET = 'materials';
 
-// ---- 内置模板（随站点发布，templates/manifest.json 登记）----
-// 说明：book_templates 表对匿名身份只读，所以内置模板直接从静态文件加载，
-// 与数据库里用户自建的模板合并显示（内置的不可删除，可复制后另存）。
-const BUILTIN_TPL_VER = '20261106l';
-let builtinTpls = null;
-
-async function loadBuiltinTemplates() {
-  if (builtinTpls) return builtinTpls;
-  builtinTpls = [];
-  try {
-    const res = await fetch('templates/manifest.json?v=' + BUILTIN_TPL_VER);
-    if (!res.ok) return builtinTpls;
-    const manifest = await res.json();
-    const jobs = [];
-    Object.keys(manifest).forEach(cat => {
-      (manifest[cat] || []).forEach(item => {
-        jobs.push(
-          fetch('templates/' + item.file + '?v=' + BUILTIN_TPL_VER)
-            .then(r => (r.ok ? r.text() : ''))
-            .then(html => (html ? {
-              id: 'builtin:' + item.file,
-              name: item.name,
-              category: cat,
-              html: html,
-              builtin: true
-            } : null))
-            .catch(() => null)
-        );
-      });
-    });
-    builtinTpls = (await Promise.all(jobs)).filter(Boolean);
-  } catch (e) { lcWarn('loadBuiltinTemplates', e); }
-  return builtinTpls;
-}
-
 async function loadTemplates() {
-  const builtins = await loadBuiltinTemplates();
   const { data, error } = await supabase
     .from('book_templates')
     .select('id, name, category, html')
     .order('created_at', { ascending: true });
-  if (error) lcWarn('loadTemplates', error);
-  const dbTpls = error ? [] : (data || []);
-  // 已经导入到数据库的同名模板不再重复显示内置那份
-  const dbKeys = new Set(dbTpls.map(t => t.category + '|' + t.name));
-  const restBuiltins = builtins.filter(t => !dbKeys.has(t.category + '|' + t.name));
-  tplList = restBuiltins.concat(dbTpls);
-  const btn = document.getElementById('btnImportBuiltin');
-  if (btn) btn.style.display = restBuiltins.length ? '' : 'none';
+  if (error) { lcWarn('loadTemplates', error); return; }
+  tplList = data || [];
   renderTplList();
-}
-
-// 一键把内置模板写入数据库，变成可编辑/可删除的“我的模板”
-async function importBuiltinTemplates() {
-  const builtins = await loadBuiltinTemplates();
-  if (!builtins.length) { alert('没有可导入的内置模板'); return; }
-  if (!confirm(`把 ${builtins.length} 款内置模板导入为你的模板？导入后可自由编辑、删除。`)) return;
-  const rows = builtins.map(t => ({ name: t.name, category: t.category, html: t.html }));
-  const { error } = await supabase.from('book_templates').insert(rows);
-  if (error) {
-    const msg = (error.code === '42501' || /row-level security/i.test(error.message))
-      ? '当前登录账号没有模板写入权限（数据库 RLS 限制）。\n可先用内置版本（勾选模板胶囊直接套用），或到 Supabase 控制台为 book_templates 表开启已登录用户的插入策略。'
-      : error.message;
-    alert('导入失败：' + msg);
-    return;
-  }
-  await loadTemplates();
-  alert('导入完成，模板已进入你的模板库');
 }
 
 function openAssets() {
@@ -713,11 +653,9 @@ function renderTplList() {
   box.innerHTML = list.map(t => `
     <div class="tpl-item">
       <div class="tpl-item-thumb"><div class="tpl-item-thumb-page"></div></div>
-      <div class="tpl-item-name">${t.name}${t.builtin ? '<span class="tpl-badge">内置</span>' : ''}</div>
-      ${t.builtin
-        ? `<button onclick="openTplEditor('${t.id}')" class="tpl-item-btn">复制</button>`
-        : `<button onclick="openTplEditor('${t.id}')" class="tpl-item-btn">编辑</button>
-           <button onclick="deleteTpl('${t.id}')" class="tpl-item-btn tpl-item-btn--danger">删除</button>`}
+      <div class="tpl-item-name">${t.name}</div>
+      <button onclick="openTplEditor('${t.id}')" class="tpl-item-btn">编辑</button>
+      <button onclick="deleteTpl('${t.id}')" class="tpl-item-btn tpl-item-btn--danger">删除</button>
     </div>`).join('');
   // 预览小图：按画册比例的真实尺寸渲染模板，再整体缩放进缩略框
   const br = (config && config.bookRatio) || { w: 420, h: 560 };
@@ -736,12 +674,9 @@ function renderTplList() {
 
 function openTplEditor(id) {
   const tpl = id ? tplList.find(t => t.id === id) : null;
-  // 内置模板：以“复制”方式打开，另存为数据库里的自建模板
-  const isBuiltin = !!(tpl && tpl.builtin);
-  editingTplId = isBuiltin ? null : (id || null);
-  document.getElementById('tplEditorTitle').textContent =
-    isBuiltin ? '内置模板 · 另存为我的模板' : (tpl ? '编辑模板' : '新增模板');
-  document.getElementById('tplName').value = tpl ? (isBuiltin ? tpl.name + ' 副本' : tpl.name) : '';
+  editingTplId = id || null;
+  document.getElementById('tplEditorTitle').textContent = tpl ? '编辑模板' : '新增模板';
+  document.getElementById('tplName').value = tpl ? tpl.name : '';
   document.getElementById('tplHtml').value = tpl ? tpl.html : '';
   document.getElementById('tplEditorModal').style.display = 'flex';
   renderTplPreview();
