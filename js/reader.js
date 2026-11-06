@@ -311,6 +311,12 @@ function initBook() {
     checkMusicStart();
     preloadAround();
   });
+  // 翻页动画开始：按按下方向预判目标页，提前切换半区阴影（含取消翻页时的纠正）
+  pageFlip.on('changeState', e => {
+    const s = e && e.data;
+    if (s === 'flipping' || s === 'user_fold') anticipateHalfShadow();
+    else if (s === 'read') updateNum();
+  });
   updateNum();
   preloadAround();
 }
@@ -359,8 +365,8 @@ function updateBlankPageVisibility(cur, total) {
     p.style.boxShadow = '';
     p.classList.remove('no-gutter');
   });
-  // 封面/封底独占一屏时，空半区不画整框阴影（改由 CSS 半区伪元素接管）
-  book.classList.remove('lc-half', 'lc-half--left', 'lc-half--right');
+  // 半区阴影：封面/封底独占一屏时投影收窄到有页面的那一半（CSS 过渡滑移）
+  syncHalfShadow(cur);
   if (cur === 0 && !isSinglePage) {
     const left = book.querySelector('.page.--left');
     if (left) {
@@ -368,7 +374,6 @@ function updateBlankPageVisibility(cur, total) {
       left.style.boxShadow = 'none';
       left.classList.add('no-gutter');
     }
-    book.classList.add('lc-half', 'lc-half--right');
   }
   if (cur === total - 1 && !isSinglePage) {
     const right = book.querySelector('.page.--right');
@@ -377,9 +382,47 @@ function updateBlankPageVisibility(cur, total) {
       right.style.boxShadow = 'none';
       right.classList.add('no-gutter');
     }
-    book.classList.add('lc-half', 'lc-half--left');
   }
 }
+
+// 半区投影：封面独占（页在右半）/ 封底独占（页在左半）时收窄；
+// 单页模式（移动端）书本只有一页宽，整框即是页面，不挂类
+function syncHalfShadow(page) {
+  const book = document.getElementById('book');
+  if (!book || !pageFlip) return;
+  const total = pageFlip.getPageCount();
+  book.classList.toggle('lc-half--right', !isSinglePage && page === 0);
+  book.classList.toggle('lc-half--left', !isSinglePage && page === total - 1);
+}
+
+// 翻页方向预判：changeState('flipping') 触发时 getCurrentPageIndex 还是旧页码，
+// 用按下时指针相对书本中线的一侧推算目标页，提前切换半区阴影——
+// 翻向封面/封底的动画期间阴影渐隐渐显，而不是等动画结束才跳变。
+// 双页模式一次跨 2 页（1→3→5…），只有离开/回到封面时是 1 步
+let pendingDir = null;
+function anticipateHalfShadow() {
+  if (!pageFlip || pendingDir == null) return;
+  const cur = pageFlip.getCurrentPageIndex();
+  const total = pageFlip.getPageCount();
+  let target;
+  if (pendingDir === 'back') {
+    target = cur <= 1 ? cur - 1 : cur - 2;
+  } else {
+    target = cur === 0 ? cur + 1 : cur + 2;
+    if (!isSinglePage && target > total - 1) target = total - 1;
+  }
+  if (target < 0 || target > total - 1) return;
+  syncHalfShadow(target);
+}
+function trackPointerDir(e) {
+  const book = document.getElementById('book');
+  if (!book) return;
+  const x = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+  const r = book.getBoundingClientRect();
+  pendingDir = x >= r.left + r.width / 2 ? 'fwd' : 'back';
+}
+document.addEventListener('mousedown', trackPointerDir, true);
+document.addEventListener('touchstart', trackPointerDir, { capture: true, passive: true });
 
 function checkMusicStart() {
   if (!window.bgMusic || window.musicStarted) return;
@@ -398,10 +441,12 @@ function checkMusicStart() {
 
 function nextPage() {
   if (!pageFlip) return;
+  pendingDir = 'fwd';
   pageFlip.flipNext('bottom');
 }
 function prevPage() {
   if (!pageFlip) return;
+  pendingDir = 'back';
   pageFlip.flipPrev('bottom');
 }
 
