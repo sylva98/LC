@@ -823,6 +823,7 @@ function updateConfig() {
   // 从表单读回值
   config.background.color = document.getElementById('bgColor').value;
   config.background.image = document.getElementById('bgImage').value.trim();
+  config.background.type = config.background.image ? 'image' : 'color';
   config.background.blur = parseInt(document.getElementById('bgBlur').value, 10) || 0;
   config.background.dim = parseFloat(document.getElementById('bgDim').value) || 0;
   config.bookRatio.w = parseInt(document.getElementById('ratioW').value) || 420;

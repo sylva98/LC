@@ -141,7 +141,7 @@ function applyBackground() {
   layer.style.setProperty('--bg-blur', (Number(bg.blur) || 0) + 'px');
   layer.style.setProperty('--bg-dim', Number(bg.dim != null ? bg.dim : 0.06));
   layer.style.setProperty('--bg-depth', Number(bg.depth != null ? bg.depth : 1));
-  if (bg.type === 'image' && bg.image) {
+  if (bg.image) {
     img.style.backgroundImage = 'url("' + bg.image + '")';
   } else {
     img.style.backgroundImage = 'none';
