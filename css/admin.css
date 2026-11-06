@@ -820,7 +820,39 @@ input[type="checkbox"]:checked::after {
   max-height: 80vh;
 }
 #assetsModal .modal-box { width: 92%; max-width: 760px; max-height: 84vh; }
-#tplEditorModal .modal-box { max-width: 640px; max-height: 84vh; }
+#tplEditorModal .modal-box { max-width: 1040px; width: 94%; max-height: 84vh; }
+/* 模板编辑弹窗：左代码 + 右实时预览 */
+.tpl-editor-body { display: flex; gap: 18px; flex: 1; min-height: 0; }
+.tpl-editor-left {
+  flex: 1.15; min-width: 0;
+  display: flex; flex-direction: column;
+}
+.tpl-editor-left .modal-textarea { flex: 1; min-height: 0; }
+.tpl-editor-preview {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+}
+.tpl-editor-preview-head {
+  font-size: 12px; color: #8888a8; margin-bottom: 8px;
+  display: flex; align-items: baseline; gap: 8px;
+}
+.tpl-editor-preview-note { font-size: 11px; color: #5c5c78; }
+.tpl-editor-preview-stage {
+  flex: 1; min-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #101020;
+  border: 1px solid #2c2c44;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.tpl-editor-preview-fit { position: relative; }
+.tpl-editor-preview-page {
+  position: absolute; left: 0; top: 0;
+  transform-origin: 0 0;
+  overflow: hidden;
+  background: #efede6;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
 #htmlModal .modal-box { max-width: 600px; }
 #changePassModal .modal-box { max-width: 360px; }
 #linksModal .modal-box { max-width: 600px; }

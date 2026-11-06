@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>画册后台管理</title>
   <script src="supabase.min.js"></script>
-  <script src="common.js?v=20261106k"></script>
-  <link rel="stylesheet" href="common.css?v=20261106k">
-  <link rel="stylesheet" href="css/admin.css?v=20261106k">
+  <script src="common.js?v=20261106l"></script>
+  <link rel="stylesheet" href="common.css?v=20261106l">
+  <link rel="stylesheet" href="css/admin.css?v=20261106l">
 </head>
 <body>
 
@@ -325,7 +325,7 @@
 
   </div><!-- /viewEdit -->
 
-  <script src="js/admin.js?v=20261106k"></script>
+  <script src="js/admin.js?v=20261106l"></script>
 
 <!-- 素材库弹窗 -->
 <div id="assetsModal" class="modal-overlay">
@@ -370,13 +370,25 @@
 <div id="tplEditorModal" class="modal-overlay">
   <div class="modal-box modal-box--col">
     <h3 id="tplEditorTitle" class="modal-title modal-title--mb16">新增模板</h3>
-    <div class="modal-field">
-      <input type="text" id="tplName" placeholder="模板名称（如：极简封面 A）" class="modal-input">
-    </div>
-    <textarea id="tplHtml" placeholder="粘贴模板 HTML 代码" class="modal-textarea"></textarea>
-    <div class="modal-actions">
-      <button onclick="closeTplEditor()" class="btn-muted">取消</button>
-      <button onclick="saveTpl()" class="btn-accent">保存模板</button>
+    <div class="tpl-editor-body">
+      <div class="tpl-editor-left">
+        <div class="modal-field">
+          <input type="text" id="tplName" placeholder="模板名称（如：极简封面 A）" class="modal-input">
+        </div>
+        <textarea id="tplHtml" placeholder="粘贴模板 HTML 代码" class="modal-textarea" oninput="tplPreviewChanged()"></textarea>
+        <div class="modal-actions">
+          <button onclick="closeTplEditor()" class="btn-muted">取消</button>
+          <button onclick="saveTpl()" class="btn-accent">保存模板</button>
+        </div>
+      </div>
+      <div class="tpl-editor-preview">
+        <div class="tpl-editor-preview-head">实时预览<span class="tpl-editor-preview-note">按画册比例</span></div>
+        <div class="tpl-editor-preview-stage">
+          <div class="tpl-editor-preview-fit" id="tplPreviewFit">
+            <div class="tpl-editor-preview-page" id="tplPreviewPage"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

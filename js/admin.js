@@ -595,7 +595,7 @@ const MATERIAL_BUCKET = 'materials';
 // ---- 内置模板（随站点发布，templates/manifest.json 登记）----
 // 说明：book_templates 表对匿名身份只读，所以内置模板直接从静态文件加载，
 // 与数据库里用户自建的模板合并显示（内置的不可删除，可复制后另存）。
-const BUILTIN_TPL_VER = '20261106k';
+const BUILTIN_TPL_VER = '20261106l';
 let builtinTpls = null;
 
 async function loadBuiltinTemplates() {
@@ -744,7 +744,34 @@ function openTplEditor(id) {
   document.getElementById('tplName').value = tpl ? (isBuiltin ? tpl.name + ' 副本' : tpl.name) : '';
   document.getElementById('tplHtml').value = tpl ? tpl.html : '';
   document.getElementById('tplEditorModal').style.display = 'flex';
+  renderTplPreview();
 }
+
+// ---- 模板编辑弹窗：右侧实时预览（按画册比例渲染、整体缩放适配） ----
+let tplPreviewTimer = null;
+function tplPreviewChanged() {
+  clearTimeout(tplPreviewTimer);
+  tplPreviewTimer = setTimeout(renderTplPreview, 300);
+}
+function renderTplPreview() {
+  const fit = document.getElementById('tplPreviewFit');
+  const page = document.getElementById('tplPreviewPage');
+  if (!fit || !page) return;
+  const br = (config && config.bookRatio) || { w: 420, h: 560 };
+  const stage = fit.parentElement;
+  const availW = stage.clientWidth - 28, availH = stage.clientHeight - 28;
+  const scale = Math.max(0.05, Math.min(availW / br.w, availH / br.h, 1));
+  fit.style.width = Math.round(br.w * scale) + 'px';
+  fit.style.height = Math.round(br.h * scale) + 'px';
+  page.style.width = br.w + 'px';
+  page.style.height = br.h + 'px';
+  page.style.transform = 'scale(' + scale + ')';
+  page.innerHTML = document.getElementById('tplHtml').value || '';
+}
+window.addEventListener('resize', () => {
+  const m = document.getElementById('tplEditorModal');
+  if (m && m.style.display === 'flex') renderTplPreview();
+});
 function closeTplEditor() {
   document.getElementById('tplEditorModal').style.display = 'none';
   editingTplId = null;
